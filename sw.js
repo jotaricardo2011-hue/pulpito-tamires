@@ -1,6 +1,6 @@
 // Funciona sem internet: responde do cache e atualiza em segundo plano.
 // Suba a versão a cada mudança publicada.
-const CACHE = 'pulpito-v2';
+const CACHE = 'pulpito-v3';
 const BIBLIA = Array.from({ length: 66 }, (_, i) => `biblia/${String(i + 1).padStart(2, '0')}.json`);
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', ...BIBLIA];
 

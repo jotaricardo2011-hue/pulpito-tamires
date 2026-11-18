@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0e131b">
 <title>Púlpito da Tamires</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -351,7 +351,9 @@ let db;
 function carregar() {
   try { db = JSON.parse(LS.get(CHAVE) || 'null'); } catch (e) { db = null; }
   if (!db || typeof db !== 'object') db = {};
-  db.nome ??= 'Tamires'; db.tema ??= 'auto'; db.esbocos ??= []; db.convites ??= []; db.ultimoBackup ??= null;
+  db.nome ??= 'Tamires'; db.tema ??= 'dark'; db.esbocos ??= []; db.convites ??= []; db.ultimoBackup ??= null;
+  // v3: o escuro virou o padrão. Quem ainda estava no automático passa para o escuro uma vez só.
+  if (!db.escuroPadrao) { if (db.tema === 'auto') db.tema = 'dark'; db.escuroPadrao = true; salvar(); }
   if (!db.exemploCriado) { db.esbocos.push(exemploEsboco()); db.exemploCriado = true; salvar(); }
 }
 function salvar() { db.v = 1; if (!LS.set(CHAVE, JSON.stringify(db))) toast('Não deu para salvar: a memória do aparelho está cheia'); }
@@ -735,7 +737,7 @@ function abrirPulpito(e) {
   if (e.introducao) slides.push({ rot: 'Introdução', body: e.introducao });
   e.topicos.forEach((tp, i) => slides.push({ rot: `Tópico ${i + 1} de ${e.topicos.length}`, h: tp.titulo, vers: tp.versiculos, refs: lerRefs(tp.versiculos), body: tp.conteudo }));
   SECOES.forEach(([k, rot]) => { if (e[k]) slides.push({ rot, body: e[k] }); });
-  let i = 0, fonte = +LS.get('mp_fonte') || 28, escuro = LS.get('mp_pulpito') === 'escuro', trava = null, vez = 0;
+  let i = 0, fonte = +LS.get('mp_fonte') || 28, escuro = LS.get('mp_pulpito') !== 'claro', trava = null, vez = 0;
   const inicio = Date.now();
   const el = document.createElement('div'); el.id = 'pulpito'; el.classList.toggle('escuro', escuro);
   el.innerHTML = `<div class="p-top"><button data-a="sair" aria-label="Sair">✕</button><div class="p-info"><span id="p-hora"></span><span id="p-tempo"></span></div>
