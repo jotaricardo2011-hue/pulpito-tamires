@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d5fc4">
+<title>Púlpito da Tamires</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f6fd;--card:#fff;--ink:#15233b;--muted:#5d6b82;--line:#d9e4f4;--pri:#1d5fc4;--pri-ink:#fff;--acc:#1f7ae0;--ok:#2f7d4f;--ok-bg:#e3f2e8;--warn:#9a5b12;--warn-bg:#fbefd9;--danger:#b42318;--danger-bg:#fde7e5;--chip:#e4edfa;--shadow:0 1px 2px rgba(21,35,59,.06),0 6px 18px rgba(29,95,196,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1524;--card:#16213a;--ink:#e6eefc;--muted:#97a8c6;--line:#24345a;--pri:#6ea8ff;--pri-ink:#0a1222;--acc:#8cc0ff;--ok:#6fcf97;--ok-bg:#183326;--warn:#f2b968;--warn-bg:#3a2a12;--danger:#ff8a80;--danger-bg:#3d1a18;--chip:#1f2d4d;--shadow:0 1px 2px rgba(0,0,0,.3)}}
+:root[data-theme=dark]{--bg:#0d1524;--card:#16213a;--ink:#e6eefc;--muted:#97a8c6;--line:#24345a;--pri:#6ea8ff;--pri-ink:#0a1222;--acc:#8cc0ff;--ok:#6fcf97;--ok-bg:#183326;--warn:#f2b968;--warn-bg:#3a2a12;--danger:#ff8a80;--danger-bg:#3d1a18;--chip:#1f2d4d;--shadow:0 1px 2px rgba(0,0,0,.3)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Inter,system-ui,sans-serif}
+body.travado{overflow:hidden}
+[hidden]{display:none!important}
+.cap::first-letter{text-transform:uppercase}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+h1,h2,h3,h4{margin:0;line-height:1.2}
+.lora{font-family:Lora,Georgia,serif}
+
+/* topo */
+.topo{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;gap:6px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;border-bottom:1px solid var(--line)}
+.topo h1{flex:1;font:700 20px/1.2 Lora,Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic-btn{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none}
+.ic-btn:active{background:var(--chip)}
+.ic-btn svg,.aba svg,.btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+main{max-width:760px;margin:0 auto;padding:14px 16px calc(96px + env(safe-area-inset-bottom))}
+
+/* abas */
+.abas{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom)}
+.aba{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;font-size:12px;font-weight:600;color:var(--muted)}
+.aba.on{color:var(--pri)}
+
+/* peças */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 18px;border-radius:14px;font-weight:600;border:1px solid var(--line);background:var(--card);text-align:center}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--pri);color:var(--pri-ink);border-color:var(--pri)}
+.btn.danger{color:var(--danger)}
+.btn.bloco{width:100%}
+.btn[disabled]{opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.danger{background:var(--danger-bg);color:var(--danger)}
+.muted{color:var(--muted)}
+.sec-t{font:700 13px/1 Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 2px 10px}
+.vazio{text-align:center;color:var(--muted);padding:34px 16px}
+.vazio b{display:block;color:var(--ink);font-size:18px;margin-bottom:4px}
+.fab{position:fixed;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:4;width:58px;height:58px;border-radius:18px;background:var(--pri);color:var(--pri-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(29,95,196,.35)}
+.fab svg{width:28px;height:28px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round}
+@media (min-width:820px){.fab{right:calc(50% - 380px + 18px)}}
+
+/* listas */
+.item{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.item:active{background:var(--chip)}
+.item .info{flex:1;min-width:0}
+.item .t{font-weight:700;font-size:16.5px;line-height:1.3}
+.item .s{color:var(--muted);font-size:14px;margin-top:2px}
+.item.cancel .t{text-decoration:line-through;opacity:.6}
+.dia{flex:none;width:52px;text-align:center;border-radius:12px;background:var(--chip);padding:6px 0}
+.dia b{display:block;font:700 22px/1 Lora,serif}
+.dia span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase}
+.mes-t{font:700 15px Lora,serif;margin:18px 2px 8px}
+
+/* início */
+.ola{margin:4px 2px 14px}
+.ola h2{font:700 24px/1.2 Lora,serif}
+.ola p{margin:2px 0 0;color:var(--muted)}
+.prox{display:block;background:var(--pri);color:var(--pri-ink);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow)}
+.prox .q{display:inline-block;font-size:13px;font-weight:700;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:999px}
+.prox h3{font:700 23px/1.2 Lora,serif;margin:10px 0 4px}
+.prox p{margin:0;opacity:.9}
+.prox .e{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25);font-weight:600}
+.atalhos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center}
+.stat b{display:block;font:700 26px/1.1 Lora,serif;color:var(--pri)}
+.stat span{font-size:12.5px;color:var(--muted)}
+.alerta{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 14px;margin-bottom:10px;font-size:14.5px}
+.alerta.warn{background:var(--warn-bg);color:var(--warn)}
+.alerta.danger{background:var(--danger-bg);color:var(--danger)}
+.alerta.ok{background:var(--ok-bg);color:var(--ok)}
+.alerta b{display:block}
+.alerta .btn{min-height:36px;padding:6px 12px;margin-top:8px;font-size:14px}
+
+/* filtros */
+.busca{position:relative;margin-bottom:10px}
+.busca input{width:100%;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);padding:0 14px 0 42px;outline:none}
+.busca input:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 18%,transparent)}
+.busca svg{position:absolute;left:13px;top:13px;width:22px;height:22px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+.filtros{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.filtros::-webkit-scrollbar{display:none}
+.fil{flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;font-weight:600}
+.fil.on{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.fil select{border:0;background:none;outline:none;font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{padding:8px;border-radius:10px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* formulários */
+.form{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field>span{font-size:13.5px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea,.topico input,.topico textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;outline:none}
+.field textarea,.topico textarea{min-height:84px;resize:none;line-height:1.45}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:10px;font-weight:600}
+.check input{width:20px;height:20px;accent-color:var(--pri)}
+.grupo{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.grupo h3{font:700 16px Lora,serif}
+.topico{border:1px dashed var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.topico-h{display:flex;gap:8px;align-items:center}
+.topico-h b{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pri);color:var(--pri-ink);display:grid;place-items:center;font-size:14px}
+.topico-h input{font-weight:600}
+.mini{display:flex;gap:4px;justify-content:flex-end}
+.mini button{height:34px;padding:0 10px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600}
+.mini button:active{background:var(--chip)}
+.mini button[disabled]{opacity:.3}
+.barra-salvar{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:4;background:color-mix(in srgb,var(--bg) 94%,transparent);border-top:1px solid var(--line);padding:10px 16px}
+.barra-salvar .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.aviso-f{border-radius:12px;padding:10px 12px;font-size:14px}
+.aviso-f.warn{background:var(--warn-bg);color:var(--warn)}
+.aviso-f.danger{background:var(--danger-bg);color:var(--danger)}
+.modelos{display:grid;gap:10px}
+.modelo{display:block;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.modelo b{display:block;font:700 17px Lora,serif}
+.modelo span{color:var(--muted);font-size:14px}
+
+/* esboço */
+.esb-h h2{font:700 27px/1.2 Lora,serif}
+.esb-h .ref{color:var(--acc);font-weight:700;margin-top:6px;font-size:17px}
+.acoes{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin:16px 0 6px}
+.sec{margin-top:18px}
+.sec h3{font:700 13px Inter,sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--acc);margin-bottom:6px}
+.sec p{margin:0;white-space:pre-wrap}
+.tops{list-style:none;padding:0;margin:0;counter-reset:t}
+.tops li{counter-increment:t;position:relative;padding:12px 0 12px 44px;border-top:1px solid var(--line)}
+.tops li:first-child{border-top:0}
+.tops li::before{content:counter(t);position:absolute;left:0;top:12px;width:32px;height:32px;border-radius:50%;background:var(--pri);color:var(--pri-ink);display:grid;place-items:center;font-weight:700}
+.tops h4{font:700 18px/1.3 Lora,serif}
+.vers{color:var(--acc);font-weight:600;font-size:14.5px;margin:3px 0}
+.tops p{margin:4px 0 0;white-space:pre-wrap}
+
+/* convite */
+.conv-topo .q{display:inline-block;font-size:13px;font-weight:700;color:var(--pri);background:var(--chip);padding:3px 10px;border-radius:999px}
+.conv-topo h2{font:700 25px/1.2 Lora,serif;margin:10px 0 4px}
+.conv-topo .d{color:var(--muted)}
+.grade-acoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.linha{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.linha:first-child{border-top:0;padding-top:0}
+.linha .r{flex:none;width:96px;color:var(--muted);font-size:14px}
+.linha .v{flex:1;white-space:pre-wrap;word-break:break-word}
+
+/* calendário */
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-h b{font:700 18px Lora,serif}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .dsem{font-size:12px;font-weight:700;color:var(--muted);padding:4px 0;text-transform:uppercase}
+.cal button{aspect-ratio:1;border-radius:12px;font-weight:600;position:relative;background:var(--card);border:1px solid var(--line)}
+.cal button.vz{visibility:hidden}
+.cal button.hoje{border-color:var(--pri);color:var(--pri)}
+.cal button.sel{background:var(--pri);color:var(--pri-ink);border-color:var(--pri)}
+.cal button i{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);display:flex;gap:3px}
+.cal button i em{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.cal button.sel i em{background:var(--pri-ink)}
+
+/* janelas */
+.fundo{position:fixed;inset:0;z-index:20;background:rgba(10,14,22,.5);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+@media (min-width:600px){.fundo{align-items:center}}
+.janela{background:var(--card);border-radius:22px;padding:20px;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.janela h3{font:700 19px Lora,serif;margin-bottom:8px}
+.janela p{margin:0 0 16px;color:var(--muted);white-space:pre-wrap}
+.janela .bts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu{display:flex;flex-direction:column;gap:6px}
+.menu button{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:12px;font-weight:600;text-align:left}
+.menu button:active{background:var(--chip)}
+.menu button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;font-size:15px;opacity:0;pointer-events:none;transition:.2s;z-index:30;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* modo púlpito */
+#pulpito{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:#0b1426;color:#eef4ff;--pf:28px}
+#pulpito.claro{background:#f7faff;color:#10203a}
+.p-top{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px}
+.p-top button{min-width:44px;height:44px;border-radius:12px;font-weight:700;font-size:17px;color:inherit}
+.p-top button:active{background:rgba(127,127,127,.2)}
+.p-info{flex:1;display:flex;gap:14px;justify-content:center;font-weight:700;font-variant-numeric:tabular-nums;opacity:.85}
+.p-corpo{flex:1;overflow-y:auto;padding:10px 26px 30px;font-size:var(--pf);line-height:1.45;user-select:none}
+.p-rot{font:700 calc(var(--pf)*.5)/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#7cb7ff;margin:8px 0 14px}
+#pulpito.claro .p-rot{color:#1d5fc4}
+.p-corpo h2{font:700 calc(var(--pf)*1.35)/1.15 Lora,serif;margin:0 0 12px}
+.p-vers{color:#7cb7ff;font-weight:700;margin:0 0 14px}
+#pulpito.claro .p-vers{color:#1d5fc4}
+.p-corpo p{margin:0 0 14px;white-space:pre-wrap}
+.p-capa{display:flex;flex-direction:column;justify-content:center;min-height:100%;text-align:center}
+.p-capa h2{font-size:calc(var(--pf)*1.6)}
+.p-pe{display:flex;align-items:center;gap:8px;padding:8px 10px calc(10px + env(safe-area-inset-bottom))}
+.p-pe button{flex:1;height:52px;border-radius:14px;background:rgba(127,127,127,.18);font-weight:700;font-size:17px;color:inherit}
+.p-pe span{flex:none;min-width:64px;text-align:center;font-weight:700;opacity:.8}
+.p-barra{height:4px;background:rgba(127,127,127,.25)}
+.p-barra i{display:block;height:100%;background:#4f9bff;transition:width .2s}
+
+@media print{
+  .topo,.abas,.fab,.acoes,.hist,.barra-salvar,#toast{display:none!important}
+  body{background:#fff;color:#000}
+  main{padding:0;max-width:none}
+  .card{box-shadow:none;border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<header class="topo">
+  <button class="ic-btn" id="voltar" aria-label="Voltar" hidden><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <h1 id="titulo">Púlpito da Tamires</h1>
+  <div id="topo-acao"></div>
+</header>
+<main id="tela"></main>
+<nav class="abas">
+  <a class="aba" data-aba="inicio" href="#/inicio"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Início</a>
+  <a class="aba" data-aba="esbocos" href="#/esbocos"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 7h6M9 11h6"/></svg>Esboços</a>
+  <a class="aba" data-aba="agenda" href="#/agenda"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</a>
+  <a class="aba" data-aba="ajustes" href="#/ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</a>
+</nav>
+<div id="toast" role="status"></div>
+<datalist id="livros"></datalist>
+
+<script>
+'use strict';
+/* ================= utilidades ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = n => String(n).padStart(2, '0');
+const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const LS = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+};
+const IC = {
+  mais: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  busca: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>',
+  editar: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  pontos: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>',
+  compart: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  imprimir: '<svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2"/><rect x="6" y="14" width="12" height="7"/></svg>',
+  copiar: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  estrela: '<svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>',
+  lixo: '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  whats: '<svg viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c.3 2.2 2.3 4.2 4.5 4.5l1.2-1.2 2 1-.4 1.4c-3.6.6-8.5-4.3-7.9-7.9L9.8 7l1 2z"/></svg>',
+  fone: '<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+  mapa: '<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  sino: '<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg>',
+  livro: '<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>',
+  esq: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+  dir: '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+};
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+function janela(html) {
+  const f = document.createElement('div'); f.className = 'fundo'; f.innerHTML = `<div class="janela">${html}</div>`;
+  document.body.append(f); return f;
+}
+function confirmar(msg, { titulo = 'Confirmar', ok = 'Confirmar', perigo = false } = {}) {
+  return new Promise(res => {
+    const f = janela(`<h3>${esc(titulo)}</h3><p>${esc(msg)}</p><div class="bts"><button class="btn" data-r="0">Voltar</button><button class="btn ${perigo ? 'danger' : 'pri'}" data-r="1">${esc(ok)}</button></div>`);
+    f.addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b || e.target === f) { f.remove(); res(!!(b && b.dataset.r === '1')); } });
+  });
+}
+function menu(itens) {
+  const f = janela(`<div class="menu">${itens.map((it, i) => `<button data-i="${i}" ${it.perigo ? 'style="color:var(--danger)"' : ''}>${it.ic || ''}${esc(it.txt)}</button>`).join('')}<button data-i="-1" class="muted" style="justify-content:center">Fechar</button></div>`);
+  f.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b || e.target === f) { f.remove(); if (b && +b.dataset.i >= 0) itens[+b.dataset.i].fn(); } });
+}
+function cresce(t) { t.style.height = 'auto'; t.style.height = Math.max(84, t.scrollHeight + 2) + 'px'; }
+const nl = s => esc(s);
+
+/* ================= datas ================= */
+const DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+const DIAS_C = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const isoDe = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const hojeISO = () => isoDe(new Date());
+function paraData(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); }
+const difDias = iso => Math.round((paraData(iso) - paraData(hojeISO())) / 864e5);
+function fmtData(iso, longo = false) {
+  const d = paraData(iso);
+  return longo ? `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`
+    : `${DIAS_C[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()].slice(0, 3)}`;
+}
+function quando(iso) {
+  const n = difDias(iso);
+  if (n === 0) return 'Hoje'; if (n === 1) return 'Amanhã'; if (n === -1) return 'Ontem';
+  return n > 1 ? `Em ${n} dias` : `Há ${-n} dias`;
+}
+const minutos = h => { if (!h) return null; const [a, b] = h.split(':').map(Number); return a * 60 + b; };
+
+/* ================= dados (ficam só no aparelho) ================= */
+const CHAVE = 'mp_dados';
+const LIVROS = ['Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute', '1 Samuel', '2 Samuel', '1 Reis', '2 Reis', '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias', 'Ester', 'Jó', 'Salmos', 'Provérbios', 'Eclesiastes', 'Cantares', 'Isaías', 'Jeremias', 'Lamentações', 'Ezequiel', 'Daniel', 'Oseias', 'Joel', 'Amós', 'Obadias', 'Jonas', 'Miqueias', 'Naum', 'Habacuque', 'Sofonias', 'Ageu', 'Zacarias', 'Malaquias', 'Mateus', 'Marcos', 'Lucas', 'João', 'Atos', 'Romanos', '1 Coríntios', '2 Coríntios', 'Gálatas', 'Efésios', 'Filipenses', 'Colossenses', '1 Tessalonicenses', '2 Tessalonicenses', '1 Timóteo', '2 Timóteo', 'Tito', 'Filemom', 'Hebreus', 'Tiago', '1 Pedro', '2 Pedro', '1 João', '2 João', '3 João', 'Judas', 'Apocalipse'];
+const TIPOS_ESB = ['Temático', 'Textual', 'Expositivo'];
+const TIPOS_CONV = ['Culto', 'Culto de jovens', 'Congresso', 'Conferência', 'Vigília', 'Santa Ceia', 'Casamento', 'Aniversário da igreja', 'Outro'];
+const STATUS = { pendente: 'A confirmar', confirmado: 'Confirmado', realizado: 'Realizado', cancelado: 'Cancelado' };
+const SECOES = [['ilustracoes', 'Ilustrações'], ['aplicacao', 'Aplicação'], ['apelo', 'Apelo'], ['conclusao', 'Conclusão']];
+
+function exemploEsboco() {
+  return {
+    id: uid(), exemplo: true, favorito: false, criado: Date.now(), atualizado: Date.now(),
+    titulo: 'A fé que agrada a Deus', texto: 'Hebreus 11:6', tipo: 'Temático', tema: 'Fé', serie: 'Vida de fé', tags: 'fé, confiança, oração',
+    introducao: 'Comece perguntando à igreja: o que agrada a Deus? O texto mostra que, sem fé, é impossível agradá-lo. Hoje vamos ver três marcas dessa fé.',
+    topicos: [
+      { titulo: 'A fé crê que Deus existe', versiculos: 'Hebreus 11:3; Salmos 19:1', conteudo: 'A fé começa reconhecendo quem Deus é. Não é um sentimento vago, mas confiança em um Deus real, que se revela na criação e na Palavra.' },
+      { titulo: 'A fé busca a Deus', versiculos: 'Jeremias 29:13; Mateus 6:33', conteudo: 'Quem crê se aproxima. A fé verdadeira gera oração, leitura da Palavra e comunhão.' },
+      { titulo: 'A fé confia na recompensa de Deus', versiculos: 'Hebreus 11:8-10; 2 Coríntios 4:17-18', conteudo: 'Abraão saiu sem saber para onde ia, mas sabia em quem confiava. A fé olha além das circunstâncias.' },
+    ],
+    ilustracoes: 'Uma pessoa atravessa uma ponte com medo, mas chega do outro lado. A segurança não estava no tamanho da fé dela, e sim na ponte em que confiou.',
+    aplicacao: 'Em que área da sua vida você precisa voltar a confiar em Deus esta semana?',
+    apelo: 'Convide quem deseja entregar suas preocupações a Deus a vir à frente para oração.',
+    conclusao: 'Sem fé é impossível agradar a Deus. Mas, com fé, até o impossível se torna caminho. Saia daqui crendo, buscando e confiando.',
+  };
+}
+let db;
+function carregar() {
+  try { db = JSON.parse(LS.get(CHAVE) || 'null'); } catch (e) { db = null; }
+  if (!db || typeof db !== 'object') db = {};
+  db.nome ??= 'Tamires'; db.tema ??= 'auto'; db.esbocos ??= []; db.convites ??= []; db.ultimoBackup ??= null;
+  if (!db.exemploCriado) { db.esbocos.push(exemploEsboco()); db.exemploCriado = true; salvar(); }
+}
+function salvar() { db.v = 1; if (!LS.set(CHAVE, JSON.stringify(db))) toast('Não deu para salvar: a memória do aparelho está cheia'); }
+const esbocoPorId = id => db.esbocos.find(e => e.id === id);
+const convitePorId = id => db.convites.find(c => c.id === id);
+const ativo = c => c.status !== 'cancelado';
+const ordConv = (a, b) => (a.data + (a.hora || '99:99')).localeCompare(b.data + (b.hora || '99:99'));
+function conflitos(c) {
+  if (!c.data || !ativo(c)) return [];
+  const m = minutos(c.hora);
+  return db.convites.filter(o => o.id !== c.id && ativo(o) && o.data === c.data &&
+    (m == null || minutos(o.hora) == null || Math.abs(minutos(o.hora) - m) < 180));
+}
+const pregacoesDe = id => db.convites.filter(c => c.esbocoId === id && ativo(c) && (c.status === 'realizado' || c.data < hojeISO())).sort((a, b) => b.data.localeCompare(a.data));
+function livroDe(ref) { const r = String(ref || '').trim(); const m = r.match(/^(.*?)\s+\d+([:.,].*)?$/); return (m ? m[1] : r).trim(); }
+function statusChip(c) {
+  if (c.status === 'pendente') return '<span class="chip warn">A confirmar</span>';
+  if (c.status === 'realizado') return '<span class="chip ok">Realizado</span>';
+  if (c.status === 'cancelado') return '<span class="chip">Cancelado</span>';
+  return '';
+}
+function aplicarTema() { if (db.tema === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = db.tema; }
+
+/* ================= navegação ================= */
+let passos = 0;
+function tela(titulo, html, { voltar = null, acao = '' } = {}) {
+  $('#titulo').textContent = titulo;
+  const v = $('#voltar'); v.hidden = !voltar;
+  v.onclick = () => { if (passos > 1) history.back(); else location.hash = voltar; };
+  $('#topo-acao').innerHTML = acao;
+  const t = $('#tela'); t.innerHTML = html;
+  $$('textarea', t).forEach(cresce);
+  return t;
+}
+function params() { const q = location.hash.split('?')[1] || ''; return Object.fromEntries(new URLSearchParams(q)); }
+const ROTAS = [
+  [/^#\/inicio$/, () => telaInicio()],
+  [/^#\/esbocos$/, () => telaEsbocos()],
+  [/^#\/esboco\/novo(\?.*)?$/, () => telaEditarEsboco(null)],
+  [/^#\/esboco\/([\w-]+)\/editar$/, m => telaEditarEsboco(m[1])],
+  [/^#\/esboco\/([\w-]+)$/, m => telaVerEsboco(m[1])],
+  [/^#\/agenda$/, () => telaAgenda()],
+  [/^#\/convite\/novo(\?.*)?$/, () => telaEditarConvite(null)],
+  [/^#\/convite\/([\w-]+)\/editar$/, m => telaEditarConvite(m[1])],
+  [/^#\/convite\/([\w-]+)$/, m => telaVerConvite(m[1])],
+  [/^#\/ajustes$/, () => telaAjustes()],
+];
+function rotear() {
+  passos++;
+  const h = location.hash || '#/inicio';
+  for (const [re, fn] of ROTAS) {
+    const m = h.match(re);
+    if (m) {
+      fn(m);
+      const aba = h.startsWith('#/esboco') ? 'esbocos' : (h.startsWith('#/convite') || h.startsWith('#/agenda')) ? 'agenda' : h.slice(2).split(/[/?]/)[0];
+      $$('.aba').forEach(a => a.classList.toggle('on', a.dataset.aba === aba));
+      scrollTo(0, 0);
+      return;
+    }
+  }
+  location.replace('#/inicio');
+}
+addEventListener('hashchange', rotear);
+
+/* ================= Início ================= */
+function itemConvite(c) {
+  const d = paraData(c.data), e = esbocoPorId(c.esbocoId), conf = conflitos(c).length;
+  const semEsb = !e && ativo(c) && c.data >= hojeISO();
+  return `<a class="item ${ativo(c) ? '' : 'cancel'}" href="#/convite/${c.id}">
+    <div class="dia"><b>${d.getDate()}</b><span>${DIAS_C[d.getDay()]}</span></div>
+    <div class="info"><div class="t">${esc(c.igreja)}</div>
+      <div class="s">${[c.hora, c.cidade, c.tipo].filter(Boolean).map(esc).join(' • ')}</div>
+      <div class="chips">${e ? `<span class="chip">📖 ${esc(e.titulo)}</span>` : ''}${semEsb ? '<span class="chip warn">Sem esboço</span>' : ''}${statusChip(c)}${conf ? '<span class="chip danger">Conflito de horário</span>' : ''}</div>
+    </div></a>`;
+}
+function telaInicio() {
+  const hoje = hojeISO(), agora = new Date();
+  const futuros = db.convites.filter(c => ativo(c) && c.data >= hoje).sort(ordConv);
+  const prox = futuros[0];
+  const passados = db.convites.filter(c => c.data < hoje && (c.status === 'confirmado' || c.status === 'pendente')).sort(ordConv);
+  const semEsb = futuros.filter(c => !c.esbocoId && difDias(c.data) <= 14);
+  const conf = futuros.filter(c => conflitos(c).length);
+  const dados = db.esbocos.length + db.convites.length;
+  const backupVelho = dados > 2 && (!db.ultimoBackup || Date.now() - db.ultimoBackup > 30 * 864e5);
+  const anoRealizadas = db.convites.filter(c => c.status === 'realizado' && c.data.startsWith(String(agora.getFullYear()))).length;
+  const hora = agora.getHours(), saud = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  let alertas = '';
+  if (conf.length) alertas += `<div class="alerta danger"><div><b>Conflito de horário</b>${conf.length} convites caem no mesmo dia e horário.<br><a class="btn" href="#/convite/${conf[0].id}">Ver o primeiro</a></div></div>`;
+  if (passados.length) alertas += `<div class="alerta warn"><div><b>Já aconteceu?</b>${esc(passados[0].igreja)}, ${fmtData(passados[0].data)}. Marque como realizado para guardar onde você pregou.<br><button class="btn" data-realizar="${passados[0].id}">Marcar como realizado</button></div></div>`;
+  if (semEsb.length) alertas += `<div class="alerta warn"><div><b>Escolha a mensagem</b>${semEsb.length === 1 ? 'Um convite' : semEsb.length + ' convites'} dos próximos 14 dias ainda sem esboço.<br><a class="btn" href="#/convite/${semEsb[0].id}">Escolher esboço</a></div></div>`;
+  if (backupVelho) alertas += `<div class="alerta warn"><div><b>Faça uma cópia de segurança</b>Se o celular quebrar ou for trocado, a cópia guarda seus esboços e convites.<br><a class="btn" href="#/ajustes">Fazer agora</a></div></div>`;
+  const e = prox && esbocoPorId(prox.esbocoId);
+  const t = tela('Púlpito da Tamires', `
+    <div class="ola"><h2>${saud}${db.nome ? ', ' + esc(db.nome) : ''}!</h2><p class="cap">${fmtData(hoje, true)}</p></div>
+    ${prox ? `<a class="prox" href="#/convite/${prox.id}"><span class="q">Próximo compromisso · ${quando(prox.data)}</span>
+      <h3>${esc(prox.igreja)}</h3><p class="cap">${fmtData(prox.data, true)}${prox.hora ? ' · ' + esc(prox.hora) : ''}</p>
+      ${prox.cidade ? `<p>${esc(prox.cidade)}</p>` : ''}
+      <div class="e">${e ? '📖 ' + esc(e.titulo) : '⚠️ Esboço ainda não escolhido'}</div></a>`
+      : `<div class="card vazio"><b>Nenhum convite agendado</b>Quando receber um convite, anote aqui para não perder.</div>`}
+    ${alertas}
+    <div class="atalhos"><a class="btn" href="#/esboco/novo">${IC.mais} Novo esboço</a><a class="btn pri" href="#/convite/novo">${IC.mais} Novo convite</a></div>
+    ${futuros.length > 1 ? `<div class="sec-t">Próximos</div>${futuros.slice(1, 6).map(itemConvite).join('')}${futuros.length > 6 ? `<a class="btn bloco" href="#/agenda">Ver todos (${futuros.length})</a>` : ''}` : ''}
+    <div class="sec-t">Resumo</div>
+    <div class="stats"><div class="stat"><b>${db.esbocos.length}</b><span>esboços</span></div><div class="stat"><b>${futuros.length}</b><span>convites a seguir</span></div><div class="stat"><b>${anoRealizadas}</b><span>pregações em ${agora.getFullYear()}</span></div></div>`);
+  t.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-realizar]'); if (!b) return;
+    const c = convitePorId(b.dataset.realizar); c.status = 'realizado'; salvar(); toast('Marcado como realizado'); telaInicio();
+  });
+}
+
+/* ================= Esboços ================= */
+const filtro = { q: '', tipo: 'todos', livro: '', ordem: 'recentes' };
+function telaEsbocos() {
+  const livros = [...new Set(db.esbocos.map(e => livroDe(e.texto)).filter(Boolean))].sort((a, b) => LIVROS.indexOf(a) - LIVROS.indexOf(b));
+  const t = tela('Esboços', `
+    <div class="busca">${IC.busca}<input id="q" type="search" placeholder="Buscar por título, texto, tema…" value="${esc(filtro.q)}" autocomplete="off"></div>
+    <div class="filtros">
+      ${['todos', ...TIPOS_ESB, 'favoritos'].map(k => `<button class="fil ${filtro.tipo === k ? 'on' : ''}" data-tipo="${k}">${k === 'todos' ? 'Todos' : k === 'favoritos' ? '★ Favoritos' : k}</button>`).join('')}
+      ${livros.length ? `<label class="fil ${filtro.livro ? 'on' : ''}"><select id="livro"><option value="">Livro da Bíblia</option>${livros.map(l => `<option ${filtro.livro === l ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>` : ''}
+      <label class="fil"><select id="ordem"><option value="recentes">Recentes</option><option value="az" ${filtro.ordem === 'az' ? 'selected' : ''}>A–Z</option><option value="menos" ${filtro.ordem === 'menos' ? 'selected' : ''}>Menos pregados</option></select></label>
+    </div>
+    <div id="lista"></div>
+    <a class="fab" href="#/esboco/novo" aria-label="Novo esboço">${IC.mais}</a>`);
+  const listar = () => {
+    const q = norm(filtro.q);
+    let l = db.esbocos.filter(e => {
+      if (filtro.tipo === 'favoritos' && !e.favorito) return false;
+      if (TIPOS_ESB.includes(filtro.tipo) && e.tipo !== filtro.tipo) return false;
+      if (filtro.livro && livroDe(e.texto) !== filtro.livro) return false;
+      if (!q) return true;
+      return norm([e.titulo, e.texto, e.tema, e.serie, e.tags, e.introducao, ...e.topicos.map(t => t.titulo + ' ' + t.versiculos)].join(' ')).includes(q);
+    });
+    const vezes = Object.fromEntries(l.map(e => [e.id, pregacoesDe(e.id).length]));
+    if (filtro.ordem === 'az') l.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt'));
+    else if (filtro.ordem === 'menos') l.sort((a, b) => vezes[a.id] - vezes[b.id] || b.atualizado - a.atualizado);
+    else l.sort((a, b) => b.atualizado - a.atualizado);
+    $('#lista').innerHTML = l.length ? l.map(e => `<a class="item" href="#/esboco/${e.id}"><div class="info">
+        <div class="t">${e.favorito ? '<span style="color:var(--acc)">★</span> ' : ''}${esc(e.titulo)}</div>
+        <div class="s">${[e.texto, e.tema].filter(Boolean).map(esc).join(' • ') || 'Sem texto base'}</div>
+        <div class="chips"><span class="chip">${esc(e.tipo)}</span>${vezes[e.id] ? `<span class="chip ok">Pregado ${vezes[e.id]}×</span>` : ''}${e.serie ? `<span class="chip">Série: ${esc(e.serie)}</span>` : ''}${e.exemplo ? '<span class="chip warn">Exemplo</span>' : ''}</div>
+      </div></a>`).join('')
+      : `<div class="vazio"><b>${db.esbocos.length ? 'Nada encontrado' : 'Nenhum esboço ainda'}</b>${db.esbocos.length ? 'Tente outra palavra ou limpe os filtros.' : 'Toque no + para criar o primeiro.'}</div>`;
+  };
+  listar();
+  $('#q', t).addEventListener('input', e => { filtro.q = e.target.value; listar(); });
+  $$('[data-tipo]', t).forEach(b => b.onclick = () => { filtro.tipo = b.dataset.tipo; telaEsbocos(); });
+  $('#livro', t)?.addEventListener('change', e => { filtro.livro = e.target.value; telaEsbocos(); });
+  $('#ordem', t).addEventListener('change', e => { filtro.ordem = e.target.value; listar(); });
+}
+
+const MODELOS = {
+  tematico: { nome: 'Temático', desc: 'Um tema desenvolvido em tópicos, com textos de várias partes da Bíblia.', tipo: 'Temático', n: 3,
+    dica: i => ['Primeiro ponto do tema', 'Segundo ponto do tema', 'Terceiro ponto do tema'][i] || 'Mais um ponto do tema', intro: 'Apresente o tema e por que ele importa para a igreja hoje.' },
+  textual: { nome: 'Textual', desc: 'Os tópicos saem das divisões de um texto curto (1 a 3 versículos).', tipo: 'Textual', n: 3,
+    dica: i => `Divisão ${i + 1} do texto (ex.: primeira parte do versículo)`, intro: 'Leia o texto e mostre como ele se divide.' },
+  expositivo: { nome: 'Expositivo', desc: 'Explica uma passagem maior, versículo por versículo.', tipo: 'Expositivo', n: 3,
+    dica: i => `Versículos ${['1-3', '4-6', '7-9'][i] || '...'}: a ideia principal`, intro: 'Contexto: quem escreveu, para quem, e o que acontece antes desta passagem.' },
+  branco: { nome: 'Em branco', desc: 'Comece do zero, do seu jeito.', tipo: 'Temático', n: 1, dica: () => 'Título do tópico', intro: '' },
+};
+function telaEditarEsboco(id) {
+  const p = params(), orig = id && esbocoPorId(id);
+  if (id && !orig) { location.replace('#/esbocos'); return; }
+  if (!id && !p.modelo) {
+    const t = tela('Novo esboço', `<p class="muted" style="margin:2px 2px 14px">Escolha um modelo para começar. Dá para mudar tudo depois.</p>
+      <div class="modelos">${Object.entries(MODELOS).map(([k, m]) => `<button class="modelo" data-m="${k}"><b>${m.nome}</b><span>${m.desc}</span></button>`).join('')}</div>`, { voltar: '#/esbocos' });
+    $$('[data-m]', t).forEach(b => b.onclick = () => location.replace('#/esboco/novo?modelo=' + b.dataset.m));
+    return;
+  }
+  const mod = MODELOS[p.modelo] || MODELOS[orig ? ({ 'Textual': 'textual', 'Expositivo': 'expositivo' }[orig.tipo] || 'tematico') : 'branco'];
+  const r = orig ? structuredClone(orig) : {
+    id: uid(), titulo: '', texto: '', tipo: mod.tipo, tema: '', serie: '', tags: '', introducao: '',
+    topicos: Array.from({ length: mod.n }, () => ({ titulo: '', versiculos: '', conteudo: '' })),
+    ilustracoes: '', aplicacao: '', apelo: '', conclusao: '', favorito: false,
+  };
+  if (!r.topicos.length) r.topicos.push({ titulo: '', versiculos: '', conteudo: '' });
+  const campo = (k, rot, ph, tag = 'input') => `<label class="field"><span>${rot}</span>${tag === 'textarea'
+    ? `<textarea name="${k}" placeholder="${esc(ph)}">${esc(r[k])}</textarea>` : `<input name="${k}" value="${esc(r[k])}" placeholder="${esc(ph)}">`}</label>`;
+  const t = tela(orig ? 'Editar esboço' : 'Novo esboço', `
+    <form class="form" id="f" onsubmit="return false">
+      <div class="grupo">
+        <label class="field"><span>Título *</span><input name="titulo" value="${esc(r.titulo)}" placeholder="Ex.: A fé que agrada a Deus"></label>
+        <div class="row2"><label class="field"><span>Texto base</span><input name="texto" list="livros" value="${esc(r.texto)}" placeholder="Ex.: Hebreus 11:6"></label>
+          <label class="field"><span>Tipo</span><select name="tipo">${TIPOS_ESB.map(x => `<option ${r.tipo === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label></div>
+        <div class="row2">${campo('tema', 'Tema', 'Ex.: Fé')}${campo('serie', 'Série', 'Ex.: Vida de fé')}</div>
+        ${campo('tags', 'Palavras-chave', 'Separe por vírgula: oração, família…')}
+      </div>
+      <div class="grupo"><h3>Introdução</h3><textarea name="introducao" placeholder="${esc(mod.intro || 'Como você vai começar a mensagem?')}" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--card);outline:none">${esc(r.introducao)}</textarea></div>
+      <div class="grupo"><h3>Tópicos</h3><div id="topicos" class="form"></div>
+        <button type="button" class="btn" id="add-top">${IC.mais} Adicionar tópico</button></div>
+      <div class="grupo">
+        ${campo('ilustracoes', 'Ilustrações', 'Histórias, exemplos e comparações para usar', 'textarea')}
+        ${campo('aplicacao', 'Aplicação', 'O que a igreja deve fazer com esta mensagem?', 'textarea')}
+        ${campo('apelo', 'Apelo', 'Convite final (oração, decisão, consagração…)', 'textarea')}
+        ${campo('conclusao', 'Conclusão', 'Resumo e frase final', 'textarea')}
+        <label class="check"><input type="checkbox" name="favorito" ${r.favorito ? 'checked' : ''}> Marcar como favorito</label>
+      </div>
+    </form>
+    <div style="height:70px"></div>
+    <div class="barra-salvar"><div class="in"><button class="btn" id="cancelar">Cancelar</button><button class="btn pri" id="salvar">${IC.check} Salvar esboço</button></div></div>`,
+    { voltar: orig ? '#/esboco/' + orig.id : '#/esbocos' });
+  $$('textarea[name=introducao]', t).forEach(x => x.style.minHeight = '84px');
+  const renderTopicos = () => {
+    $('#topicos').innerHTML = r.topicos.map((tp, i) => `<div class="topico">
+      <div class="topico-h"><b>${i + 1}</b><input data-ti="${i}" data-tk="titulo" value="${esc(tp.titulo)}" placeholder="${esc(mod.dica(i))}"></div>
+      <input data-ti="${i}" data-tk="versiculos" value="${esc(tp.versiculos)}" placeholder="Versículos de apoio (ex.: Romanos 10:17)">
+      <textarea data-ti="${i}" data-tk="conteudo" placeholder="Explicação, argumentos, perguntas…">${esc(tp.conteudo)}</textarea>
+      <div class="mini"><button type="button" data-sobe="${i}" ${i ? '' : 'disabled'} aria-label="Subir tópico">↑ Subir</button><button type="button" data-desce="${i}" ${i < r.topicos.length - 1 ? '' : 'disabled'} aria-label="Descer tópico">↓ Descer</button><button type="button" data-tira="${i}" aria-label="Remover tópico" style="color:var(--danger)">✕ Remover</button></div></div>`).join('');
+    $$('#topicos textarea').forEach(cresce);
+  };
+  renderTopicos();
+  const f = $('#f', t);
+  f.addEventListener('input', e => {
+    const x = e.target;
+    if (x.dataset.ti != null) r.topicos[+x.dataset.ti][x.dataset.tk] = x.value;
+    else if (x.name) r[x.name] = x.type === 'checkbox' ? x.checked : x.value;
+    if (x.tagName === 'TEXTAREA') cresce(x);
+  });
+  f.addEventListener('change', e => { if (e.target.name === 'tipo') r.tipo = e.target.value; });
+  f.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.sobe) { const i = +b.dataset.sobe; [r.topicos[i - 1], r.topicos[i]] = [r.topicos[i], r.topicos[i - 1]]; renderTopicos(); }
+    else if (b.dataset.desce) { const i = +b.dataset.desce; [r.topicos[i + 1], r.topicos[i]] = [r.topicos[i], r.topicos[i + 1]]; renderTopicos(); }
+    else if (b.dataset.tira) {
+      const i = +b.dataset.tira, tp = r.topicos[i];
+      if ((tp.titulo + tp.versiculos + tp.conteudo).trim() && !await confirmar(`Remover o tópico "${tp.titulo || i + 1}"?`, { titulo: 'Remover tópico', ok: 'Remover', perigo: true })) return;
+      r.topicos.splice(i, 1); if (!r.topicos.length) r.topicos.push({ titulo: '', versiculos: '', conteudo: '' }); renderTopicos();
+    } else if (b.id === 'add-top') { r.topicos.push({ titulo: '', versiculos: '', conteudo: '' }); renderTopicos(); $$('#topicos [data-tk=titulo]').at(-1).focus(); }
+  });
+  $('#cancelar').onclick = () => { if (passos > 1) history.back(); else location.hash = '#/esbocos'; };
+  $('#salvar').onclick = () => {
+    if (!r.titulo.trim()) { toast('Dê um título ao esboço'); $('[name=titulo]').focus(); return; }
+    r.titulo = r.titulo.trim();
+    r.topicos = r.topicos.filter(tp => (tp.titulo + tp.versiculos + tp.conteudo).trim());
+    r.atualizado = Date.now(); r.exemplo = false;
+    if (orig) db.esbocos[db.esbocos.findIndex(e => e.id === r.id)] = r; else { r.criado = Date.now(); db.esbocos.push(r); }
+    salvar(); toast('Esboço salvo');
+    location.replace('#/esboco/' + r.id);
+  };
+  if (!orig) $('[name=titulo]', t).focus();
+}
+
+function textoEsboco(e) {
+  const L = [e.titulo.toUpperCase()];
+  if (e.texto) L.push('Texto: ' + e.texto);
+  if (e.tema) L.push('Tema: ' + e.tema);
+  L.push('');
+  if (e.introducao) L.push('INTRODUÇÃO', e.introducao, '');
+  e.topicos.forEach((tp, i) => { L.push(`${i + 1}. ${tp.titulo}`); if (tp.versiculos) L.push('   ' + tp.versiculos); if (tp.conteudo) L.push(tp.conteudo); L.push(''); });
+  SECOES.forEach(([k, rot]) => { if (e[k]) L.push(rot.toUpperCase(), e[k], ''); });
+  return L.join('\n').trim();
+}
+function telaVerEsboco(id) {
+  const e = esbocoPorId(id);
+  if (!e) { location.replace('#/esbocos'); return; }
+  const hist = pregacoesDe(id);
+  const futuros = db.convites.filter(c => c.esbocoId === id && ativo(c) && c.data >= hojeISO() && c.status !== 'realizado').sort(ordConv);
+  const sec = (rot, txt) => txt ? `<section class="sec"><h3>${rot}</h3><p>${nl(txt)}</p></section>` : '';
+  const t = tela('Esboço', `
+    <article class="card">
+      ${e.exemplo ? '<div class="alerta warn" style="margin-bottom:12px"><div><b>Este é um esboço de exemplo</b>Edite ou apague quando quiser.</div></div>' : ''}
+      <div class="esb-h"><h2>${e.favorito ? '<span style="color:var(--acc)">★</span> ' : ''}${esc(e.titulo)}</h2>${e.texto ? `<div class="ref">${esc(e.texto)}</div>` : ''}</div>
+      <div class="chips"><span class="chip">${esc(e.tipo)}</span>${e.tema ? `<span class="chip">Tema: ${esc(e.tema)}</span>` : ''}${e.serie ? `<span class="chip">Série: ${esc(e.serie)}</span>` : ''}${String(e.tags || '').split(',').map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">#${esc(s)}</span>`).join('')}</div>
+      <div class="acoes"><button class="btn pri" id="abre-pulpito">${IC.play} Modo púlpito</button><a class="btn" href="#/esboco/${e.id}/editar" aria-label="Editar">${IC.editar}</a><button class="btn" id="mais" aria-label="Mais opções">${IC.pontos}</button></div>
+      ${sec('Introdução', e.introducao)}
+      ${e.topicos.length ? `<section class="sec"><h3>Tópicos</h3><ol class="tops">${e.topicos.map(tp => `<li><h4>${esc(tp.titulo)}</h4>${tp.versiculos ? `<div class="vers">${esc(tp.versiculos)}</div>` : ''}${tp.conteudo ? `<p>${nl(tp.conteudo)}</p>` : ''}</li>`).join('')}</ol></section>` : ''}
+      ${SECOES.map(([k, rot]) => sec(rot, e[k])).join('')}
+    </article>
+    <section class="hist">
+      <div class="sec-t">Onde já preguei</div>
+      ${hist.length ? hist.map(itemConvite).join('') : '<div class="card muted">Ainda não pregado.</div>'}
+      ${futuros.length ? `<div class="sec-t">Agendado para</div>${futuros.map(itemConvite).join('')}` : ''}
+      <a class="btn bloco" href="#/convite/novo?esboco=${e.id}">${IC.mais} Agendar esta pregação</a>
+    </section>`, { voltar: '#/esbocos' });
+  $('#abre-pulpito', t).onclick = () => abrirPulpito(e);
+  $('#mais', t).onclick = () => menu([
+    { ic: IC.compart, txt: 'Compartilhar (WhatsApp, e-mail…)', fn: async () => {
+      const texto = textoEsboco(e);
+      if (navigator.share) { try { await navigator.share({ title: e.titulo, text: texto }); return; } catch (x) { if (x.name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(texto); toast('Esboço copiado. É só colar.'); } catch (x) { toast('Não foi possível copiar'); }
+    } },
+    { ic: IC.imprimir, txt: 'Imprimir ou salvar em PDF', fn: () => print() },
+    { ic: IC.estrela, txt: e.favorito ? 'Tirar dos favoritos' : 'Marcar como favorito', fn: () => { e.favorito = !e.favorito; salvar(); telaVerEsboco(id); } },
+    { ic: IC.copiar, txt: 'Duplicar', fn: () => {
+      const c = structuredClone(e); c.id = uid(); c.titulo += ' (cópia)'; c.criado = c.atualizado = Date.now(); c.exemplo = false;
+      db.esbocos.push(c); salvar(); toast('Cópia criada'); location.hash = '#/esboco/' + c.id + '/editar';
+    } },
+    { ic: IC.lixo, txt: 'Excluir esboço', perigo: true, fn: async () => {
+      if (!await confirmar(`Excluir "${e.titulo}"? Isso não pode ser desfeito.`, { titulo: 'Excluir esboço', ok: 'Excluir', perigo: true })) return;
+      db.esbocos = db.esbocos.filter(x => x.id !== id);
+      db.convites.forEach(c => { if (c.esbocoId === id) c.esbocoId = ''; });
+      salvar(); toast('Esboço excluído'); location.replace('#/esbocos');
+    } },
+  ]);
+}
+
+/* ================= Modo púlpito ================= */
+function abrirPulpito(e) {
+  const slides = [{ capa: true, h: e.titulo, sub: [e.texto, e.tema].filter(Boolean).join(' · ') }];
+  if (e.introducao) slides.push({ rot: 'Introdução', body: e.introducao });
+  e.topicos.forEach((tp, i) => slides.push({ rot: `Tópico ${i + 1} de ${e.topicos.length}`, h: tp.titulo, vers: tp.versiculos, body: tp.conteudo }));
+  SECOES.forEach(([k, rot]) => { if (e[k]) slides.push({ rot, body: e[k] }); });
+  let i = 0, fonte = +LS.get('mp_fonte') || 28, claro = LS.get('mp_pulpito') === 'claro', trava = null;
+  const inicio = Date.now();
+  const el = document.createElement('div'); el.id = 'pulpito'; el.classList.toggle('claro', claro);
+  el.innerHTML = `<div class="p-top"><button data-a="sair" aria-label="Sair">✕</button><div class="p-info"><span id="p-hora"></span><span id="p-tempo"></span></div>
+      <button data-a="menos" aria-label="Diminuir letra">A−</button><button data-a="mais" aria-label="Aumentar letra">A+</button><button data-a="tema" aria-label="Claro ou escuro">◐</button></div>
+    <div class="p-barra"><i id="p-prog"></i></div>
+    <div class="p-corpo" id="p-corpo"></div>
+    <div class="p-pe"><button data-a="ant">‹ Voltar</button><span id="p-n"></span><button data-a="prox">Avançar ›</button></div>`;
+  document.body.append(el); document.body.classList.add('travado');
+  const corpo = $('#p-corpo', el);
+  const mostra = () => {
+    const s = slides[i];
+    el.style.setProperty('--pf', fonte + 'px');
+    corpo.innerHTML = s.capa
+      ? `<div class="p-capa"><h2>${esc(s.h)}</h2>${s.sub ? `<div class="p-vers">${esc(s.sub)}</div>` : ''}</div>`
+      : `<div class="p-rot">${esc(s.rot)}</div>${s.h ? `<h2>${esc(s.h)}</h2>` : ''}${s.vers ? `<div class="p-vers">${esc(s.vers)}</div>` : ''}${s.body ? `<p>${nl(s.body)}</p>` : ''}`;
+    corpo.scrollTop = 0;
+    $('#p-n', el).textContent = `${i + 1} / ${slides.length}`;
+    $('#p-prog', el).style.width = ((i + 1) / slides.length * 100) + '%';
+    $('[data-a=ant]', el).disabled = i === 0; $('[data-a=prox]', el).disabled = i === slides.length - 1;
+  };
+  const relogio = () => {
+    const d = new Date(), s = Math.floor((Date.now() - inicio) / 1000);
+    $('#p-hora', el).textContent = '🕒 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    $('#p-tempo', el).textContent = '⏱ ' + Math.floor(s / 60) + ':' + pad(s % 60);
+  };
+  const vai = n => { i = Math.max(0, Math.min(slides.length - 1, i + n)); mostra(); };
+  const pedeTrava = async () => { try { trava = await navigator.wakeLock?.request('screen'); } catch (x) { trava = null; } };
+  const vis = () => { if (document.visibilityState === 'visible') pedeTrava(); };
+  const teclas = ev => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(ev.key)) { ev.preventDefault(); vai(1); }
+    else if (['ArrowLeft', 'PageUp'].includes(ev.key)) { ev.preventDefault(); vai(-1); }
+    else if (ev.key === 'Escape') history.back();
+  };
+  let x0 = null, y0 = null;
+  corpo.addEventListener('pointerdown', ev => { x0 = ev.clientX; y0 = ev.clientY; });
+  corpo.addEventListener('pointerup', ev => {
+    if (x0 == null) return;
+    const dx = ev.clientX - x0, dy = ev.clientY - y0; x0 = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) vai(dx < 0 ? 1 : -1);
+    else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) vai(ev.clientX < innerWidth * 0.3 ? -1 : 1);
+  });
+  el.addEventListener('click', ev => {
+    const a = ev.target.closest('[data-a]')?.dataset.a; if (!a) return;
+    if (a === 'sair') history.back();
+    else if (a === 'prox') vai(1); else if (a === 'ant') vai(-1);
+    else if (a === 'mais' || a === 'menos') { fonte = Math.max(18, Math.min(54, fonte + (a === 'mais' ? 3 : -3))); LS.set('mp_fonte', fonte); mostra(); }
+    else if (a === 'tema') { claro = !claro; el.classList.toggle('claro', claro); LS.set('mp_pulpito', claro ? 'claro' : 'escuro'); }
+  });
+  const timer = setInterval(relogio, 1000);
+  const fecha = () => {
+    clearInterval(timer); trava?.release?.().catch(() => {});
+    document.removeEventListener('visibilitychange', vis); removeEventListener('keydown', teclas);
+    el.remove(); document.body.classList.remove('travado');
+  };
+  history.pushState({ pulpito: 1 }, '');
+  addEventListener('popstate', fecha, { once: true });
+  document.addEventListener('visibilitychange', vis); addEventListener('keydown', teclas);
+  pedeTrava(); relogio(); mostra();
+}
+
+/* ================= Agenda ================= */
+const ag = { modo: 'lista', mes: null, dia: null, anteriores: false };
+function telaAgenda() {
+  const hoje = hojeISO();
+  let corpo;
+  if (ag.modo === 'lista') {
+    const fut = db.convites.filter(c => c.data >= hoje && c.status !== 'realizado').sort(ordConv);
+    const pas = db.convites.filter(c => c.data < hoje || (c.status === 'realizado' && c.data >= hoje)).sort((a, b) => ordConv(b, a));
+    let mesAtual = '';
+    corpo = fut.length ? fut.map(c => {
+      const d = paraData(c.data), m = MESES[d.getMonth()] + ' de ' + d.getFullYear();
+      const cab = m !== mesAtual ? `<div class="mes-t cap">${m}</div>` : ''; mesAtual = m;
+      return cab + itemConvite(c);
+    }).join('') : '<div class="card vazio"><b>Nenhum convite pela frente</b>Toque no + para anotar um convite.</div>';
+    if (pas.length) corpo += `<button class="btn bloco" id="ant" style="margin-top:8px">${ag.anteriores ? 'Esconder' : 'Ver'} anteriores (${pas.length})</button>${ag.anteriores ? '<div style="margin-top:10px">' + pas.map(itemConvite).join('') + '</div>' : ''}`;
+  } else {
+    const ref = ag.mes || (ag.mes = new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+    const y = ref.getFullYear(), m = ref.getMonth(), primeiro = new Date(y, m, 1).getDay(), nd = new Date(y, m + 1, 0).getDate();
+    const porDia = {};
+    db.convites.filter(ativo).forEach(c => { (porDia[c.data] ||= []).push(c); });
+    let cel = DIAS_C.map(d => `<div class="dsem">${d}</div>`).join('') + '<button class="vz"></button>'.repeat(primeiro);
+    for (let d = 1; d <= nd; d++) {
+      const iso = `${y}-${pad(m + 1)}-${pad(d)}`, n = (porDia[iso] || []).length;
+      cel += `<button data-dia="${iso}" class="${iso === hoje ? 'hoje' : ''} ${iso === ag.dia ? 'sel' : ''}" aria-label="${d}${n ? ', ' + n + ' convite(s)' : ''}">${d}${n ? `<i>${'<em></em>'.repeat(Math.min(n, 3))}</i>` : ''}</button>`;
+    }
+    const doDia = ag.dia ? db.convites.filter(c => c.data === ag.dia).sort(ordConv) : [];
+    corpo = `<div class="card"><div class="cal-h"><button class="ic-btn" id="mes-ant" aria-label="Mês anterior">${IC.esq}</button><b class="cap">${MESES[m]} ${y}</b><button class="ic-btn" id="mes-prox" aria-label="Próximo mês">${IC.dir}</button></div>
+      <div class="cal">${cel}</div></div>
+      ${ag.dia ? `<div class="sec-t cap" style="text-transform:none;letter-spacing:0;font-size:15px">${fmtData(ag.dia, true)}</div>${doDia.map(itemConvite).join('') || '<div class="card muted">Nenhum convite neste dia.</div>'}
+        <a class="btn bloco" href="#/convite/novo?data=${ag.dia}">${IC.mais} Novo convite neste dia</a>` : '<p class="muted" style="text-align:center">Toque num dia para ver os convites.</p>'}`;
+  }
+  const t = tela('Agenda', `<div class="seg"><button data-modo="lista" class="${ag.modo === 'lista' ? 'on' : ''}">Lista</button><button data-modo="mes" class="${ag.modo === 'mes' ? 'on' : ''}">Calendário</button></div>
+    ${corpo}<a class="fab" href="#/convite/novo${ag.modo === 'mes' && ag.dia ? '?data=' + ag.dia : ''}" aria-label="Novo convite">${IC.mais}</a>`);
+  $$('[data-modo]', t).forEach(b => b.onclick = () => { ag.modo = b.dataset.modo; telaAgenda(); });
+  $('#ant', t) && ($('#ant', t).onclick = () => { ag.anteriores = !ag.anteriores; telaAgenda(); });
+  $$('[data-dia]', t).forEach(b => b.onclick = () => { ag.dia = b.dataset.dia; telaAgenda(); });
+  if ($('#mes-ant', t)) {
+    $('#mes-ant', t).onclick = () => { ag.mes = new Date(ag.mes.getFullYear(), ag.mes.getMonth() - 1, 1); telaAgenda(); };
+    $('#mes-prox', t).onclick = () => { ag.mes = new Date(ag.mes.getFullYear(), ag.mes.getMonth() + 1, 1); telaAgenda(); };
+  }
+}
+
+function telaEditarConvite(id) {
+  const p = params(), orig = id && convitePorId(id);
+  if (id && !orig) { location.replace('#/agenda'); return; }
+  const r = orig ? structuredClone(orig) : {
+    id: uid(), igreja: '', data: p.data || '', hora: '19:00', tipo: 'Culto', status: 'confirmado', cidade: '', endereco: '',
+    contato: '', telefone: '', esbocoId: p.esboco && esbocoPorId(p.esboco) ? p.esboco : '', temaEvento: '', obs: '',
+  };
+  const igrejas = [...new Set(db.convites.map(c => c.igreja).filter(Boolean))];
+  const esbs = [...db.esbocos].sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt'));
+  const t = tela(orig ? 'Editar convite' : 'Novo convite', `
+    <form class="form" id="f" onsubmit="return false">
+      <div class="grupo">
+        <label class="field"><span>Igreja ou evento *</span><input name="igreja" list="igrejas" value="${esc(r.igreja)}" placeholder="Ex.: Assembleia de Deus Central"></label>
+        <datalist id="igrejas">${igrejas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
+        <div class="row2"><label class="field"><span>Data *</span><input type="date" name="data" value="${esc(r.data)}"></label>
+          <label class="field"><span>Horário</span><input type="time" name="hora" value="${esc(r.hora)}"></label></div>
+        <div class="row2"><label class="field"><span>Tipo</span><select name="tipo">${TIPOS_CONV.map(x => `<option ${r.tipo === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+          <label class="field"><span>Situação</span><select name="status">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${r.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div>
+        <div id="aviso-conf"></div>
+      </div>
+      <div class="grupo"><h3>Local e contato</h3>
+        <div class="row2"><label class="field"><span>Cidade</span><input name="cidade" value="${esc(r.cidade)}" placeholder="Ex.: Amparo - SP"></label>
+          <label class="field"><span>Telefone (WhatsApp)</span><input type="tel" name="telefone" value="${esc(r.telefone)}" placeholder="(19) 99999-9999"></label></div>
+        <label class="field"><span>Endereço</span><input name="endereco" value="${esc(r.endereco)}" placeholder="Rua, número, bairro"></label>
+        <label class="field"><span>Quem convidou</span><input name="contato" value="${esc(r.contato)}" placeholder="Ex.: Pr. João"></label>
+      </div>
+      <div class="grupo"><h3>Mensagem</h3>
+        <label class="field"><span>Esboço que vou pregar</span><select name="esbocoId"><option value="">Ainda não escolhi</option>${esbs.map(e => `<option value="${e.id}" ${r.esbocoId === e.id ? 'selected' : ''}>${esc(e.titulo)}${e.texto ? ' — ' + esc(e.texto) : ''}</option>`).join('')}</select></label>
+        <div id="aviso-esb"></div>
+        <label class="field"><span>Tema do evento</span><input name="temaEvento" value="${esc(r.temaEvento)}" placeholder="Se a igreja pediu um tema"></label>
+        <label class="field"><span>Observações</span><textarea name="obs" placeholder="Tempo de pregação, traje, transporte, hospedagem…">${esc(r.obs)}</textarea></label>
+      </div>
+    </form>
+    <div style="height:70px"></div>
+    <div class="barra-salvar"><div class="in"><button class="btn" id="cancelar">Cancelar</button><button class="btn pri" id="salvar">${IC.check} Salvar convite</button></div></div>`,
+    { voltar: orig ? '#/convite/' + orig.id : '#/agenda' });
+  const avisos = () => {
+    const cf = conflitos(r);
+    $('#aviso-conf').innerHTML = cf.length ? `<div class="aviso-f danger"><b>Conflito:</b> nesse dia você já tem ${cf.map(c => `${esc(c.igreja)}${c.hora ? ' às ' + esc(c.hora) : ''}`).join(' e ')}.</div>` : '';
+    const ja = r.esbocoId && r.igreja.trim() ? pregacoesDe(r.esbocoId).filter(c => c.id !== r.id && norm(c.igreja) === norm(r.igreja)) : [];
+    $('#aviso-esb').innerHTML = ja.length ? `<div class="aviso-f warn">Você já pregou este esboço em ${esc(r.igreja)} (${fmtData(ja[0].data)}).</div>` : '';
+  };
+  avisos();
+  const f = $('#f', t);
+  const atualiza = e => { const x = e.target; if (x.name) r[x.name] = x.value; if (x.tagName === 'TEXTAREA') cresce(x); avisos(); };
+  f.addEventListener('input', atualiza); f.addEventListener('change', atualiza);
+  $('#cancelar').onclick = () => { if (passos > 1) history.back(); else location.hash = '#/agenda'; };
+  $('#salvar').onclick = async () => {
+    r.igreja = r.igreja.trim();
+    if (!r.igreja) { toast('Informe a igreja ou o evento'); $('[name=igreja]').focus(); return; }
+    if (!r.data) { toast('Informe a data'); $('[name=data]').focus(); return; }
+    const cf = conflitos(r);
+    if (cf.length && !await confirmar(`Nesse dia você já tem: ${cf.map(c => c.igreja + (c.hora ? ' às ' + c.hora : '')).join(', ')}. Salvar mesmo assim?`, { titulo: 'Conflito de horário', ok: 'Salvar assim mesmo' })) return;
+    if (orig) db.convites[db.convites.findIndex(c => c.id === r.id)] = r; else { r.criado = Date.now(); db.convites.push(r); }
+    salvar(); toast('Convite salvo');
+    location.replace('#/convite/' + r.id);
+  };
+  if (!orig) $('[name=igreja]', t).focus();
+}
+
+function fone(t) { let d = String(t || '').replace(/\D/g, ''); if (d.length === 10 || d.length === 11) d = '55' + d; return d; }
+function icsEsc(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+function baixar(nome, conteudo, tipo) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: tipo })); a.download = nome;
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function lembrete(c) {
+  const e = esbocoPorId(c.esbocoId), d = c.data.replace(/-/g, '');
+  const agora = new Date(), stamp = agora.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  let ini, fim;
+  if (c.hora) {
+    const [h, m] = c.hora.split(':').map(Number), fimD = new Date(paraData(c.data).getTime() + (h * 60 + m + 120) * 6e4);
+    ini = `DTSTART:${d}T${pad(h)}${pad(m)}00`; fim = `DTEND:${isoDe(fimD).replace(/-/g, '')}T${pad(fimD.getHours())}${pad(fimD.getMinutes())}00`;
+  } else {
+    const prox = new Date(paraData(c.data).getTime() + 864e5);
+    ini = `DTSTART;VALUE=DATE:${d}`; fim = `DTEND;VALUE=DATE:${isoDe(prox).replace(/-/g, '')}`;
+  }
+  const desc = [c.tipo, e ? 'Esboço: ' + e.titulo + (e.texto ? ' (' + e.texto + ')' : '') : 'Esboço ainda não escolhido', c.contato && 'Contato: ' + c.contato + (c.telefone ? ' ' + c.telefone : ''), c.obs].filter(Boolean).join('\n');
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Meu Pulpito//PT-BR', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    `UID:${c.id}@meupulpito`, `DTSTAMP:${stamp}`, ini, fim, `SUMMARY:${icsEsc('Pregação: ' + c.igreja)}`,
+    `LOCATION:${icsEsc([c.endereco, c.cidade].filter(Boolean).join(', '))}`, `DESCRIPTION:${icsEsc(desc)}`,
+    'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc('Amanhã: ' + c.igreja)}`, 'END:VALARM',
+    'BEGIN:VALARM', 'TRIGGER:-PT3H', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc('Hoje: ' + c.igreja)}`, 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  baixar(`pregacao-${c.data}.ics`, ics, 'text/calendar');
+  toast('Abra o arquivo para pôr na agenda do celular');
+}
+function telaVerConvite(id) {
+  const c = convitePorId(id);
+  if (!c) { location.replace('#/agenda'); return; }
+  const e = esbocoPorId(c.esbocoId), cf = conflitos(c), tel = fone(c.telefone), local = [c.endereco, c.cidade].filter(Boolean).join(', ');
+  const ja = e ? pregacoesDe(e.id).filter(x => x.id !== c.id && norm(x.igreja) === norm(c.igreja)) : [];
+  const linha = (r, v) => v ? `<div class="linha"><div class="r">${r}</div><div class="v">${esc(v)}</div></div>` : '';
+  const t = tela('Convite', `
+    <div class="card conv-topo"><span class="q">${quando(c.data)}</span><h2>${esc(c.igreja)}</h2>
+      <div class="d cap">${fmtData(c.data, true)}${c.hora ? ' · ' + esc(c.hora) : ''}</div>
+      <div class="chips"><span class="chip">${esc(c.tipo)}</span>${statusChip(c)}${c.status === 'confirmado' ? '<span class="chip ok">Confirmado</span>' : ''}</div></div>
+    ${cf.length ? `<div class="alerta danger"><div><b>Conflito de horário</b>No mesmo dia: ${cf.map(x => `<a href="#/convite/${x.id}" style="text-decoration:underline">${esc(x.igreja)}${x.hora ? ' às ' + esc(x.hora) : ''}</a>`).join(', ')}.</div></div>` : ''}
+    <div class="grade-acoes">
+      ${tel ? `<a class="btn" href="https://wa.me/${tel}" target="_blank" rel="noopener">${IC.whats} WhatsApp</a><a class="btn" href="tel:+${tel}">${IC.fone} Ligar</a>` : ''}
+      ${local ? `<a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}" target="_blank" rel="noopener">${IC.mapa} Como chegar</a>` : ''}
+      <button class="btn" id="ics">${IC.sino} Lembrete no celular</button>
+    </div>
+    <div class="card">
+      <div class="sec-t" style="margin-top:0">Mensagem</div>
+      ${e ? `<a class="item" href="#/esboco/${e.id}" style="margin:0"><div class="info"><div class="t">📖 ${esc(e.titulo)}</div><div class="s">${esc(e.texto || '')}</div></div></a>
+        ${ja.length ? `<div class="aviso-f warn" style="margin-top:10px">Você já pregou este esboço aqui em ${fmtData(ja[0].data)}.</div>` : ''}
+        <button class="btn bloco" id="abre-pulpito" style="margin-top:10px">${IC.play} Abrir no modo púlpito</button>`
+      : `<p class="muted" style="margin:0 0 10px">Esboço ainda não escolhido.</p><a class="btn bloco" href="#/convite/${c.id}/editar">Escolher esboço</a>`}
+      ${c.temaEvento ? `<div class="linha" style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px"><div class="r">Tema pedido</div><div class="v">${esc(c.temaEvento)}</div></div>` : ''}
+    </div>
+    ${(local || c.contato || c.telefone || c.obs) ? `<div class="card">${linha('Endereço', local)}${linha('Contato', c.contato)}${linha('Telefone', c.telefone)}${linha('Observações', c.obs)}</div>` : ''}
+    <div class="form">
+      ${c.status !== 'realizado' && c.status !== 'cancelado' ? `<button class="btn bloco" id="realizado">${IC.check} Marcar como realizado</button>` : ''}
+      <a class="btn bloco" href="#/convite/${c.id}/editar">${IC.editar} Editar convite</a>
+      <button class="btn bloco danger" id="excluir">${IC.lixo} Excluir convite</button>
+    </div>`, { voltar: '#/agenda' });
+  $('#ics', t).onclick = () => lembrete(c);
+  $('#abre-pulpito', t) && ($('#abre-pulpito', t).onclick = () => abrirPulpito(e));
+  $('#realizado', t) && ($('#realizado', t).onclick = () => { c.status = 'realizado'; salvar(); toast('Marcado como realizado'); telaVerConvite(id); });
+  $('#excluir', t).onclick = async () => {
+    if (!await confirmar(`Excluir o convite de ${c.igreja}?`, { titulo: 'Excluir convite', ok: 'Excluir', perigo: true })) return;
+    db.convites = db.convites.filter(x => x.id !== id); salvar(); toast('Convite excluído'); location.replace('#/agenda');
+  };
+}
+
+/* ================= Ajustes ================= */
+function telaAjustes() {
+  const ult = db.ultimoBackup ? new Date(db.ultimoBackup) : null;
+  const t = tela('Ajustes', `
+    <div class="card form">
+      <label class="field"><span>Seu nome (aparece na saudação)</span><input id="nome" value="${esc(db.nome)}" placeholder="Ex.: Pra. Tamires"></label>
+      <div class="field"><span>Aparência</span><div class="seg" style="grid-template-columns:repeat(3,1fr);margin:0">${[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Escuro']].map(([k, v]) => `<button data-tema="${k}" class="${db.tema === k ? 'on' : ''}">${v}</button>`).join('')}</div></div>
+    </div>
+    <div class="sec-t">Cópia de segurança</div>
+    <div class="card form">
+      <p class="muted" style="margin:0">Seus esboços e convites ficam guardados só neste aparelho. Faça uma cópia de vez em quando e guarde no Google Drive, no e-mail ou no WhatsApp. Ela também serve para passar tudo para um celular novo.</p>
+      <p style="margin:0;font-weight:600">${ult ? 'Última cópia: ' + fmtData(isoDe(ult)) : 'Você ainda não fez nenhuma cópia.'}</p>
+      <button class="btn pri" id="backup">Fazer cópia de segurança</button>
+      <label class="btn" for="restaurar">Restaurar uma cópia</label><input type="file" id="restaurar" accept="application/json,.json" hidden>
+    </div>
+    <div class="sec-t">Instalar no celular</div>
+    <div class="card"><p style="margin:0 0 8px"><b>Android:</b> no Chrome, toque nos 3 pontinhos ⋮ e em <b>Adicionar à tela inicial</b>.</p><p style="margin:0"><b>iPhone:</b> no Safari, toque em compartilhar e em <b>Adicionar à Tela de Início</b>.</p><p class="muted" style="margin:8px 0 0">Depois de aberto uma vez, funciona sem internet.</p></div>
+    <div class="sec-t">Zona de perigo</div>
+    <button class="btn bloco danger" id="apagar">${IC.lixo} Apagar todos os dados</button>
+    <p class="muted" style="text-align:center;font-size:13px;margin-top:20px">Púlpito da Tamires · ${db.esbocos.length} esboços · ${db.convites.length} convites</p>`);
+  $('#nome', t).addEventListener('change', e => { db.nome = e.target.value.trim(); salvar(); toast('Nome salvo'); });
+  $$('[data-tema]', t).forEach(b => b.onclick = () => { db.tema = b.dataset.tema; salvar(); aplicarTema(); telaAjustes(); });
+  $('#backup', t).onclick = async () => {
+    const dados = JSON.stringify({ ...db, app: 'meu-pulpito', exportado: new Date().toISOString() }, null, 1);
+    const nome = `pulpito-tamires-copia-${hojeISO()}.json`;
+    const arq = new File([dados], nome, { type: 'application/json' });
+    let ok = false;
+    if (matchMedia('(pointer:coarse)').matches && navigator.canShare?.({ files: [arq] })) {
+      try { await navigator.share({ files: [arq], title: 'Cópia do Púlpito da Tamires' }); ok = true; } catch (x) { if (x.name === 'AbortError') return; }
+    }
+    if (!ok) baixar(nome, dados, 'application/json');
+    db.ultimoBackup = Date.now(); salvar(); toast('Cópia criada'); telaAjustes();
+  };
+  $('#restaurar', t).onchange = async e => {
+    const arq = e.target.files[0]; if (!arq) return;
+    try {
+      const d = JSON.parse(await arq.text());
+      if (!Array.isArray(d.esbocos) || !Array.isArray(d.convites)) throw new Error('formato');
+      if (!await confirmar(`Esta cópia tem ${d.esbocos.length} esboços e ${d.convites.length} convites. Ela vai substituir tudo o que está no aparelho agora.`, { titulo: 'Restaurar cópia', ok: 'Restaurar' })) return;
+      delete d.app; delete d.exportado; db = d; db.exemploCriado = true; salvar(); aplicarTema(); toast('Cópia restaurada'); location.hash = '#/inicio';
+    } catch (x) { toast('Este arquivo não é uma cópia do Púlpito da Tamires'); }
+    e.target.value = '';
+  };
+  $('#apagar', t).onclick = async () => {
+    if (!await confirmar('Todos os esboços e convites deste aparelho serão apagados. Faça uma cópia antes, se quiser guardar.', { titulo: 'Apagar tudo', ok: 'Apagar tudo', perigo: true })) return;
+    db = { nome: db.nome, tema: db.tema, esbocos: [], convites: [], ultimoBackup: null, exemploCriado: true }; salvar(); toast('Dados apagados'); location.hash = '#/inicio';
+  };
+}
+
+/* ================= início do app ================= */
+carregar(); aplicarTema();
+$('#livros').innerHTML = LIVROS.map(l => `<option value="${l} ">`).join('');
+if (!location.hash) location.replace('#/inicio');
+rotear();
+try { navigator.storage?.persist?.(); } catch (e) {}
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
