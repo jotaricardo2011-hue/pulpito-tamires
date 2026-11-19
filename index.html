@@ -120,6 +120,31 @@ textarea{min-height:88px;resize:none;line-height:1.5}
 .mini button[disabled]{opacity:.3}
 .salvar{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:4;background:var(--bg);border-top:1px solid var(--line);padding:10px 20px}
 .salvar .in{max-width:680px;margin:0 auto;display:grid;grid-template-columns:1fr 2fr;gap:10px}
+/* ditado: gravar e transcrever */
+.salvar .in.com-mic{grid-template-columns:1fr 1.6fr 48px}
+.mic{width:48px;height:48px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;flex:none}
+.mic:active{opacity:.8}
+.gravando{max-width:680px;margin:0 auto}
+.gravando .lin{display:flex;align-items:center;gap:10px}
+.gravando .caixa{flex:1;min-width:0;background:color-mix(in srgb,var(--danger) 13%,var(--bg));border-radius:24px;padding:0 14px;height:48px;display:flex;align-items:center;gap:10px;font-weight:500;font-variant-numeric:tabular-nums}
+.gravando .ponto{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pisca 1s infinite;flex:none}
+.gravando .ondas{flex:1;display:flex;align-items:center;gap:2px;height:26px;overflow:hidden;justify-content:flex-end}
+.gravando .ondas i{width:3px;flex:none;border-radius:2px;background:var(--danger);opacity:.75;height:3px}
+.gravando .mic{background:var(--danger);color:#fff}
+.gravando .dest{font-size:13px;color:var(--muted);margin:0 0 8px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gravando .dest b{color:var(--pri);font-weight:600}
+.ditando{box-shadow:0 0 0 2px var(--pri)!important}
+@keyframes pisca{50%{opacity:.2}}
+.ouvir{margin:18px 0 4px;padding:14px;border-radius:16px;background:var(--soft)}
+.ouvir .lin{display:flex;align-items:center;gap:12px}
+.ouvir .tocar{width:46px;height:46px;border-radius:50%;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;flex:none}
+.ouvir .barra{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
+.ouvir .barra i{position:absolute;left:0;top:0;bottom:0;background:var(--pri);border-radius:3px;width:0}
+.ouvir .tempo{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ouvir .vel{display:flex;gap:6px;margin-top:12px;align-items:center}
+.ouvir .vel button{padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:13.5px;font-weight:500;color:var(--muted)}
+.ouvir .vel button.on{background:var(--pri);border-color:var(--pri);color:var(--on-pri)}
+.ouvir .vel .volta{margin-left:auto;border:0;color:var(--pri)}
 .nota{font-size:14px;padding:4px 0}
 .modelo{display:block;width:100%;text-align:left;padding:16px 0;border-bottom:1px solid var(--line)}
 .modelo b{display:block;font:500 19px Lora,Georgia,serif}
@@ -284,6 +309,10 @@ const IC = {
   ajustes: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'),
   filtro: svg('<path d="M4 6h16M7 12h10M10 18h4"/>'),
   letra: svg('<path d="M4 19l5-14 5 14M6 14h6M15 19l3-8 3 8M16 16.5h4"/>'),
+  mic: svg('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+  parar: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>',
+  pausa: svg('<path d="M8 5v14M16 5v14"/>'),
+  fone2: svg('<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/>'),
 };
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
@@ -473,6 +502,8 @@ const ROTAS = [
 ];
 function rotear() {
   passos++;
+  if (ditado) ditado.parar();
+  if (tocador) tocador.fechar();
   const h = location.hash || '#/inicio';
   for (const [re, fn] of ROTAS) {
     const m = h.match(re);
@@ -597,6 +628,240 @@ const MODELOS = {
     dica: i => `Versículos ${['1-3', '4-6', '7-9'][i] || '...'}: a ideia principal`, intro: 'Contexto: quem escreveu, para quem, e o que acontece antes desta passagem.' },
   branco: { nome: 'Em branco', desc: 'Comece do zero, do seu jeito.', tipo: 'Temático', n: 1, dica: () => 'Título do tópico', intro: '' },
 };
+/* ================= Ditado: gravar o áudio e escrever no esboço ao mesmo tempo =================
+   Áudios ficam no IndexedDB (o localStorage é pequeno demais): um registro por esboço
+   { id: <id do esboço>, clips: [{ blob, ms }] }. Vários clips tocam em sequência, como um áudio só. */
+const AUD = {
+  _db: null,
+  abrir() {
+    return this._db ||= new Promise((ok, erro) => {
+      const r = indexedDB.open('pulpito_audios', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('audios', { keyPath: 'id' });
+      r.onsuccess = () => ok(r.result); r.onerror = () => erro(r.error);
+    });
+  },
+  async op(modo, fn) {
+    const d = await this.abrir();
+    return new Promise((ok, erro) => {
+      const tx = d.transaction('audios', modo), req = fn(tx.objectStore('audios'));
+      tx.oncomplete = () => ok(req.result); tx.onerror = () => erro(tx.error); tx.onabort = () => erro(tx.error);
+    });
+  },
+  get(id) { return this.op('readonly', s => s.get(id)).catch(() => null); },
+  put(rec) { return this.op('readwrite', s => s.put(rec)); },
+  del(id) { return this.op('readwrite', s => s.delete(id)).catch(() => {}); },
+};
+const durTxt = ms => { const s = Math.round(ms / 1000); return Math.floor(s / 60) + ':' + pad(s % 60); };
+const audTotal = rec => (rec?.clips || []).reduce((s, c) => s + c.ms, 0);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const PODE_GRAVAR = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
+let ditado = null, tocador = null;
+
+// Comandos falados para pontuar: "vírgula", "ponto final", "dois pontos", "nova linha"…
+function pontuar(t) {
+  return t.replace(/\s*\bponto de interroga[çc][ãa]o\b/gi, '?')
+    .replace(/\s*\bponto de exclama[çc][ãa]o\b/gi, '!')
+    .replace(/\s*\bponto final\b/gi, '.')
+    .replace(/\s*\bv[íi]rgula\b/gi, ',')
+    .replace(/\s*\bdois pontos\b/gi, ':')
+    .replace(/\s*\b(nova linha|pr[óo]xima linha|novo par[áa]grafo)\b\s*/gi, '\n')
+    .replace(/[ \t]+([,.:?!])/g, '$1');
+}
+const ROT_CAMPO = { titulo: 'Título', texto: 'Texto base', tema: 'Tema', serie: 'Série', tags: 'Palavras-chave', introducao: 'Introdução', ilustracoes: 'Ilustrações', aplicacao: 'Aplicação', apelo: 'Apelo', conclusao: 'Conclusão' };
+function rotCampo(el) {
+  if (!el) return '';
+  if (el.dataset.ti != null) return `Tópico ${+el.dataset.ti + 1} · ${{ titulo: 'título', versiculos: 'versículos', conteudo: 'explicação' }[el.dataset.tk] || ''}`;
+  return ROT_CAMPO[el.name] || 'campo';
+}
+const ditavel = el => !!el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text'));
+
+async function comecarDitado({ esbId, barra, form, alvo, usarCursor, novo, aoGravar, aoParar }) {
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+  catch (x) { toast(x.name === 'NotAllowedError' ? 'Libere o microfone para o app nas permissões do Chrome' : 'Não foi possível usar o microfone'); return; }
+  const tipo = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  let rec;
+  try { rec = new MediaRecorder(stream, tipo ? { mimeType: tipo, audioBitsPerSecond: 64000 } : {}); }
+  catch (x) { rec = new MediaRecorder(stream); }
+  const pedacos = []; rec.ondataavailable = e => { if (e.data && e.data.size) pedacos.push(e.data); };
+  const fim = new Promise(ok => { rec.onstop = ok; });
+  const t0 = Date.now();
+  let ativo = true, semTexto = !SR, aviso = SR ? '' : 'Este navegador só grava o áudio, sem escrever.', trava = null;
+  try { trava = await navigator.wakeLock?.request('screen'); } catch (x) { trava = null; }
+
+  // ---- onde o texto entra ----
+  let el = null, antes = '', depois = '', escrito = '', parcial = '';
+  const desenhar = () => {
+    const dest = aviso ? `<span class="warn">${esc(aviso)}</span>` : semTexto ? 'Gravando o áudio' : `Escrevendo em: <b>${esc(rotCampo(el))}</b> · toque em outro campo para mudar`;
+    barra.innerHTML = `<div class="gravando"><div class="dest">${dest}</div><div class="lin"><div class="caixa"><span class="ponto"></span><span id="crono">${durTxt(Date.now() - t0)}</span><div class="ondas">${'<i></i>'.repeat(30)}</div></div><button class="mic" id="parar" aria-label="Parar a gravação">${IC.parar}</button></div></div>`;
+    $('#parar', barra).onclick = () => parar();
+  };
+  const mirar = (novoEl, comCursor) => {
+    if (el) el.classList.remove('ditando');
+    el = novoEl; escrito = ''; parcial = '';
+    const a = comCursor && el.selectionStart != null ? el.selectionStart : el.value.length;
+    const b = comCursor && el.selectionEnd != null ? el.selectionEnd : el.value.length;
+    antes = el.value.slice(0, a); depois = el.value.slice(b);
+    el.classList.add('ditando'); el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    desenhar();
+  };
+  const escrever = () => {
+    if (!el) return;
+    const novoTxt = escrito + parcial, sep = antes && novoTxt && !/\s$/.test(antes) && !/^[,.:?!\n]/.test(novoTxt) ? ' ' : '';
+    el.value = antes + sep + novoTxt + depois;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const juntar = seg => {
+    seg = pontuar(String(seg).trim()); if (!seg) return;
+    const ctx = (antes + escrito).replace(/[ \t]+$/, '');
+    if (!ctx) seg = seg.replace(/^\s+/, '');
+    if (!seg) return;
+    if (!ctx ||/[.?!\n]$/.test(ctx)) seg = seg.replace(/^(\s*)(\S)/, (m, a, b) => a + b.toUpperCase());
+    seg = seg.replace(/([.?!][ \t]+|\n[ \t]*)(\S)/g, (m, a, b) => a + b.toUpperCase());
+    escrito += (escrito && !/\s$/.test(escrito) && !/^[,.:?!\n]/.test(seg) ? ' ' : '') + seg;
+  };
+  mirar(alvo, usarCursor);
+
+  // ---- reconhecimento de voz (usa o mesmo microfone da gravação quando o Chrome deixa) ----
+  let rg = null, falhas = 0, inicio = 0, rgFim = null, fechado = false;
+  const ligar = () => {
+    if (!ativo || semTexto) return;
+    rg = new SR(); rg.lang = 'pt-BR'; rg.interimResults = true; rg.maxAlternatives = 1;
+    rg.continuous = !/Android/i.test(navigator.userAgent); // no Android, "continuous" repete frases; reiniciamos a cada frase
+    rg.onresult = ev => {
+      if (fechado) return;
+      let p = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const r = ev.results[i];
+        if (r.isFinal) juntar(r[0].transcript); else p += r[0].transcript;
+      }
+      parcial = p.trim() ? (escrito && !/\s$/.test(escrito) ? ' ' : '') + p.trim() : '';
+      falhas = 0;
+      if (aviso && !semTexto) { aviso = ''; desenhar(); }
+      escrever();
+    };
+    rg.onerror = ev => {
+      if (ev.error === 'no-speech' || ev.error === 'aborted') return;
+      if (ev.error === 'network') { aviso = 'Sem internet: só o áudio está sendo gravado agora.'; desenhar(); return; }
+      semTexto = true; aviso = 'O celular não deixou escrever enquanto grava. O áudio continua sendo gravado.'; desenhar();
+    };
+    rg.onend = () => {
+      if (parcial && !fechado) { juntar(parcial); parcial = ''; escrever(); }
+      if (rgFim) { rgFim(); rgFim = null; }
+      if (!ativo || semTexto) return;
+      falhas = Date.now() - inicio < 1500 ? falhas + 1 : 0;
+      if (falhas > 8) { semTexto = true; aviso = 'Não deu para escrever agora. O áudio continua sendo gravado.'; desenhar(); return; }
+      setTimeout(ligar, 200);
+    };
+    inicio = Date.now();
+    try { rg.start(stream.getAudioTracks()[0]); } catch (x) { try { rg.start(); } catch (y) { semTexto = true; aviso = 'O celular não deixou escrever enquanto grava. O áudio continua sendo gravado.'; desenhar(); } }
+  };
+
+  // ---- ondas e cronômetro ----
+  let actx = null, an = null, buf = null;
+  const niveis = Array(30).fill(3);
+  try { actx = new (window.AudioContext || window.webkitAudioContext)(); an = actx.createAnalyser(); an.fftSize = 512; actx.createMediaStreamSource(stream).connect(an); buf = new Uint8Array(an.fftSize); } catch (x) { an = null; }
+  const tique = setInterval(() => {
+    const c = $('#crono', barra); if (c) c.textContent = durTxt(Date.now() - t0);
+    if (!an) return;
+    an.getByteTimeDomainData(buf); let s = 0; for (const v of buf) s += (v - 128) ** 2;
+    niveis.push(Math.max(3, Math.min(26, Math.sqrt(s / buf.length) * 1.8))); niveis.shift();
+    $$('.ondas i', barra).forEach((b, i) => { b.style.height = niveis[i] + 'px'; });
+  }, 100);
+
+  // Durante a gravação, tocar num campo só muda onde o texto entra (sem abrir o teclado).
+  const toque = e => {
+    const x = e.target.closest('input,textarea');
+    if (!ativo || !ditavel(x) || x === el) return;
+    // A frase que está sendo dita agora vai para o campo novo (o resultado final chega depois).
+    e.preventDefault(); if (parcial) { parcial = ''; escrever(); }
+    mirar(x, false);
+  };
+  form.addEventListener('pointerdown', toque, true);
+
+  let parando = null;
+  function parar() {
+    if (parando) return parando;
+    ativo = false;
+    parando = (async () => {
+      clearInterval(tique); form.removeEventListener('pointerdown', toque, true);
+      try { rg?.stop(); } catch (x) {}
+      // Espera o resultado final da última frase (o Chrome entrega depois do stop) antes de fechar.
+      if (parcial && rg) await new Promise(ok => { const t = setTimeout(ok, 1500); rgFim = () => { clearTimeout(t); ok(); }; });
+      fechado = true;
+      if (parcial) { juntar(parcial); parcial = ''; escrever(); }
+      el?.classList.remove('ditando');
+      if (rec.state !== 'inactive') { try { rec.requestData(); } catch (x) {} rec.stop(); }
+      await fim;
+      stream.getTracks().forEach(tr => tr.stop());
+      try { actx?.close(); } catch (x) {}
+      try { await trava?.release(); } catch (x) {}
+      const ms = Date.now() - t0;
+      ditado = null;
+      if (pedacos.length && ms > 800) {
+        const blob = new Blob(pedacos, { type: (rec.mimeType || tipo || 'audio/webm').split(';')[0] });
+        const ant = novo ? null : await AUD.get(esbId);
+        try { await AUD.put({ id: esbId, clips: [...(ant?.clips || []), { blob, ms }] }); aoGravar?.(); toast('Áudio guardado · ' + durTxt(audTotal(ant) + ms)); }
+        catch (x) { toast('Não deu para guardar o áudio. A memória do celular está cheia?'); }
+      }
+      aoParar?.();
+    })();
+    return parando;
+  }
+  ditado = { parar };
+  rec.start(1000);
+  ligar();
+}
+
+/* Toca os clips de um esboço em sequência, como um áudio só. */
+function montarOuvir(e, cont) {
+  AUD.get(e.id).then(rec => {
+    if (!rec?.clips?.length || !document.contains(cont)) return;
+    const total = audTotal(rec);
+    let vel = +LS.get('mp_vel') || 1, i = 0, au = null, url = null, tocando = false;
+    cont.innerHTML = `<div class="ouvir"><div class="lin"><button class="tocar" id="tocar" aria-label="Ouvir">${IC.play}</button>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;margin-bottom:7px">Ouvir para estudar</div><div class="barra"><i id="prog"></i></div></div>
+      <span class="tempo" id="tempo">${durTxt(total)}</span></div>
+      <div class="vel">${[1, 1.25, 1.5, 2].map(v => `<button data-vel="${v}" class="${vel === v ? 'on' : ''}">${String(v).replace('.', ',')}x</button>`).join('')}<button class="volta" id="volta">↺ 10 s</button></div></div>`;
+    const ui = () => { const b = $('#tocar', cont); if (b) b.innerHTML = tocando ? IC.pausa : IC.play; };
+    const pos = () => rec.clips.slice(0, i).reduce((s, c) => s + c.ms, 0) + (au ? au.currentTime * 1000 : 0);
+    const mostra = () => { const p = Math.min(pos(), total); const g = $('#prog', cont), tm = $('#tempo', cont); if (g) g.style.width = (p / total * 100) + '%'; if (tm) tm.textContent = durTxt(p) + ' / ' + durTxt(total); };
+    const carregar = k => {
+      if (au) au.pause(); if (url) URL.revokeObjectURL(url);
+      i = k; url = URL.createObjectURL(rec.clips[k].blob); au = new Audio(url);
+      au.preservesPitch = true; au.defaultPlaybackRate = au.playbackRate = vel;
+      au.ontimeupdate = mostra;
+      au.onended = () => {
+        if (i + 1 < rec.clips.length) { carregar(i + 1); au.play(); return; }
+        tocando = false; carregar(0); ui(); const g = $('#prog', cont); if (g) g.style.width = '0'; const tm = $('#tempo', cont); if (tm) tm.textContent = durTxt(total);
+      };
+    };
+    $('#tocar', cont).onclick = async () => {
+      if (!au) carregar(0);
+      if (tocando) { au.pause(); tocando = false; }
+      else {
+        try { await au.play(); tocando = true; } catch (x) { toast('Não deu para tocar o áudio'); }
+        if ('mediaSession' in navigator) try { navigator.mediaSession.metadata = new MediaMetadata({ title: e.titulo, artist: 'Púlpito' }); } catch (x) {}
+      }
+      ui();
+    };
+    $$('[data-vel]', cont).forEach(b => b.onclick = () => {
+      vel = +b.dataset.vel; LS.set('mp_vel', String(vel)); if (au) au.playbackRate = vel;
+      $$('[data-vel]', cont).forEach(x => x.classList.toggle('on', x === b));
+    });
+    $('#volta', cont).onclick = () => { if (au) { au.currentTime = Math.max(0, au.currentTime - 10); mostra(); } };
+    tocador = { fechar() { if (au) au.pause(); if (url) URL.revokeObjectURL(url); au = null; tocador = null; } };
+  });
+}
+async function enviarAudio(e) {
+  const rec = await AUD.get(e.id); if (!rec?.clips?.length) return toast('Este esboço não tem áudio');
+  const ext = t => /mp4|aac|m4a/.test(t) ? 'm4a' : /ogg/.test(t) ? 'ogg' : 'weba';
+  const nome = (e.titulo.replace(/[\\/:*?"<>|]+/g, '').trim() || 'esboco').slice(0, 60);
+  const files = rec.clips.map((c, k) => new File([c.blob], `${nome}${rec.clips.length > 1 ? ' - parte ' + (k + 1) : ''}.${ext(c.blob.type)}`, { type: c.blob.type || 'audio/webm' }));
+  if (navigator.canShare?.({ files })) { try { await navigator.share({ files, title: e.titulo }); } catch (x) {} return; }
+  files.forEach(f => baixar(f.name, f, f.type));
+}
+
 function telaEditarEsboco(id) {
   const p = params(), orig = id && esbocoPorId(id);
   if (id && !orig) { location.replace('#/esbocos'); return; }
@@ -634,8 +899,8 @@ function telaEditarEsboco(id) {
       ${campo('conclusao', 'Conclusão', 'Resumo e frase final', 'textarea')}
       <label class="check"><input type="checkbox" name="favorito" ${r.favorito ? 'checked' : ''}> Favorito</label>
     </form>
-    <div style="height:70px"></div>
-    <div class="salvar"><div class="in"><button class="btn" id="cancelar">Cancelar</button><button class="btn pri" id="salvar">Salvar</button></div></div>`,
+    <div style="height:110px"></div>
+    <div class="salvar"></div>`,
     { voltar: orig ? '#/esboco/' + orig.id : '#/esbocos' });
   const renderTopicos = () => {
     $('#topicos').innerHTML = r.topicos.map((tp, i) => `<div class="topico">
@@ -664,8 +929,42 @@ function telaEditarEsboco(id) {
       r.topicos.splice(i, 1); if (!r.topicos.length) r.topicos.push({ titulo: '', versiculos: '', conteudo: '' }); renderTopicos();
     } else if (b.id === 'add-top') { r.topicos.push({ titulo: '', versiculos: '', conteudo: '' }); renderTopicos(); $$('#topicos [data-tk=titulo]').at(-1).focus(); }
   });
-  $('#cancelar').onclick = () => { if (passos > 1) history.back(); else location.hash = '#/esbocos'; };
-  $('#salvar').onclick = () => {
+  // ---- barra de baixo: Cancelar · Salvar · microfone (gravar e escrever falando) ----
+  const barra = $('.salvar', t);
+  let ultimoFoco = null, gravouAgora = false;
+  f.addEventListener('focusin', e => { if (ditavel(e.target)) ultimoFoco = e.target; });
+  const sair = () => { if (passos > 1) history.back(); else location.hash = '#/esbocos'; };
+  const cancelar = async () => {
+    if (ditado) await ditado.parar();
+    if (gravouAgora) {
+      if (!await confirmar(orig ? 'O texto que você mudou não será salvo. O áudio gravado agora continua guardado no esboço.' : 'O esboço novo e o áudio gravado serão descartados.', { titulo: 'Sair sem salvar?', ok: 'Sair', perigo: !orig })) return;
+      if (!orig) await AUD.del(r.id);
+    }
+    sair();
+  };
+  const gravar = async () => {
+    const alvo = ultimoFoco && document.contains(ultimoFoco) ? ultimoFoco : $('[name=introducao]', f);
+    if (!LS.get('mp_dica_mic')) {
+      const ok = await confirmar('1. Toque no campo onde o texto deve entrar (por exemplo, Introdução).\n2. Toque no microfone e leia o esboço em voz alta.\n3. Para mudar de campo, é só tocar em outro campo enquanto grava.\n\nPara pontuar, diga "vírgula", "ponto final", "dois pontos" ou "nova linha".\n\nO áudio fica guardado no esboço para você ouvir depois. Para escrever, o celular precisa de internet.', { titulo: 'Gravar e escrever falando', ok: 'Começar' });
+      LS.set('mp_dica_mic', '1'); if (!ok) return;
+    }
+    const vai = novo => comecarDitado({ esbId: r.id, barra, form: f, alvo, usarCursor: alvo === ultimoFoco, novo, aoGravar: () => { gravouAgora = true; }, aoParar: barraNormal });
+    const ant = await AUD.get(r.id);
+    if (ant?.clips?.length) menu([
+      { ic: IC.mic, txt: 'Continuar o áudio', sub: `Junta no final do áudio de ${durTxt(audTotal(ant))}`, fn: () => vai(false) },
+      { ic: IC.lixo, txt: 'Gravar de novo', sub: 'Apaga o áudio anterior deste esboço', perigo: true, fn: () => vai(true) },
+    ], 'Este esboço já tem áudio');
+    else vai(false);
+  };
+  function barraNormal() {
+    if (!document.contains(barra)) return;
+    barra.innerHTML = `<div class="in ${PODE_GRAVAR ? 'com-mic' : ''}"><button class="btn" id="cancelar">Cancelar</button><button class="btn pri" id="salvar">Salvar</button>${PODE_GRAVAR ? `<button class="mic" id="mic" aria-label="Gravar e escrever falando">${IC.mic}</button>` : ''}</div>`;
+    $('#cancelar', barra).onclick = cancelar;
+    $('#salvar', barra).onclick = salvarEsb;
+    $('#mic', barra)?.addEventListener('click', gravar);
+  }
+  async function salvarEsb() {
+    if (ditado) await ditado.parar();
     if (!r.titulo.trim()) { toast('Dê um título ao esboço'); $('[name=titulo]').focus(); return; }
     r.titulo = r.titulo.trim();
     r.topicos = r.topicos.filter(tp => (tp.titulo + tp.versiculos + tp.conteudo).trim());
@@ -673,7 +972,8 @@ function telaEditarEsboco(id) {
     if (orig) db.esbocos[db.esbocos.findIndex(e => e.id === r.id)] = r; else { r.criado = Date.now(); db.esbocos.push(r); }
     salvar(); toast('Esboço salvo');
     location.replace('#/esboco/' + r.id);
-  };
+  }
+  barraNormal();
   if (!orig) $('[name=titulo]', t).focus();
 }
 
@@ -700,6 +1000,7 @@ function telaVerEsboco(id) {
     <div class="meta">${[e.tipo, e.tema && 'Tema: ' + e.tema, e.serie && 'Série: ' + e.serie].filter(Boolean).map(esc).join(' · ')}${e.favorito ? ' · <span class="azul">★ Favorito</span>' : ''}</div>
     ${e.tags ? `<div class="meta">${String(e.tags).split(',').map(s => s.trim()).filter(Boolean).map(s => '#' + esc(s)).join(' ')}</div>` : ''}
     <div class="acoes"><button class="btn pri" id="abre-pulpito">${IC.play}Modo púlpito</button><a class="btn" href="#/esboco/${e.id}/editar" aria-label="Editar">${IC.editar}</a><button class="btn" id="mais" aria-label="Mais opções">${IC.pontos}</button></div>
+    <div id="ouvir"></div>
     ${sec('Introdução', e.introducao)}
     ${e.topicos.length ? `<section class="sec"><h3>Tópicos</h3><ol class="tops">${e.topicos.map((tp, i) => `<li><span class="n">${i + 1}</span><div><h4>${esc(tp.titulo)}</h4>${refsLinks(tp.versiculos)}${tp.conteudo ? `<p>${esc(tp.conteudo)}</p>` : ''}</div></li>`).join('')}</ol></section>` : ''}
     ${SECOES.map(([k, rot]) => sec(rot, e[k])).join('')}
@@ -710,7 +1011,15 @@ function telaVerEsboco(id) {
       <a class="lnk" href="#/convite/novo?esboco=${e.id}" style="margin-top:10px">${IC.mais}Agendar esta pregação</a>
     </section>`, { voltar: '#/esbocos' });
   $('#abre-pulpito', t).onclick = () => abrirPulpito(e);
-  $('#mais', t).onclick = () => menu([
+  montarOuvir(e, $('#ouvir', t));
+  $('#mais', t).onclick = async () => { const aud = await AUD.get(id); menu([
+    ...(aud?.clips?.length ? [
+      { ic: IC.whats, txt: 'Enviar o áudio', sub: `${durTxt(audTotal(aud))} · WhatsApp, Drive ou outro app`, fn: () => enviarAudio(e) },
+      { ic: IC.lixo, txt: 'Apagar o áudio', sub: 'O texto do esboço continua', perigo: true, fn: async () => {
+        if (!await confirmar('Apagar o áudio deste esboço? Isso não pode ser desfeito.', { titulo: 'Apagar áudio', ok: 'Apagar', perigo: true })) return;
+        await AUD.del(id); toast('Áudio apagado'); telaVerEsboco(id);
+      } },
+    ] : []),
     { ic: IC.compart, txt: 'Compartilhar', sub: 'WhatsApp, e-mail ou outro app', fn: async () => {
       const texto = textoEsboco(e);
       if (navigator.share) { try { await navigator.share({ title: e.titulo, text: texto }); return; } catch (x) { if (x.name === 'AbortError') return; } }
@@ -726,9 +1035,10 @@ function telaVerEsboco(id) {
       if (!await confirmar(`Excluir "${e.titulo}"? Isso não pode ser desfeito.`, { titulo: 'Excluir esboço', ok: 'Excluir', perigo: true })) return;
       db.esbocos = db.esbocos.filter(x => x.id !== id);
       db.convites.forEach(c => { if (c.esbocoId === id) c.esbocoId = ''; });
+      AUD.del(id);
       salvar(); toast('Esboço excluído'); location.replace('#/esbocos');
     } },
-  ]);
+  ]); };
 }
 
 /* ================= Modo púlpito ================= */
@@ -1066,6 +1376,7 @@ function telaAjustes() {
     </div>
     <div class="rot">Cópia de segurança</div>
     <p class="muted">Seus esboços e convites ficam guardados só neste celular. Faça uma cópia de vez em quando e guarde no Google Drive, no e-mail ou no WhatsApp. Ela também passa tudo para um celular novo.</p>
+    <p class="muted" style="margin-top:8px">Os áudios dos esboços não entram nesta cópia. Para guardar um áudio, abra o esboço, toque em ⋯ e depois em <b>Enviar o áudio</b>.</p>
     <p style="margin:10px 0 14px;font-weight:500">${ult ? 'Última cópia: ' + fmtData(isoDe(ult)) : 'Nenhuma cópia feita ainda.'}</p>
     <div class="form"><button class="btn pri bloco" id="backup">Fazer cópia de segurança</button>
       <label class="btn bloco" for="restaurar">Restaurar uma cópia</label><input type="file" id="restaurar" accept="application/json,.json" hidden></div>
